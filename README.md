@@ -1,4 +1,8 @@
 # kaggle-dsb-2019
+### NOTES
+ - every codes should be run at the repo root dir
+
+
 ### env settings and its basic usage
  1. build kaggle gpu image in your local env (because it's based on kaggle gpu image, which does not exist some-hub officially)
      - `git clone git@github.com:Kaggle/docker-python.git; cd docker-python; ./build --gpu` 
