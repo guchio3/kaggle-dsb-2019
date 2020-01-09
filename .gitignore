@@ -1,0 +1,6 @@
+.nvimlog
+tags
+*__pycache__*
+
+notebooks/.ipynb_checkpoints/
+mnt/
