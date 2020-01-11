@@ -1,4 +1,4 @@
 CONFIG_DICT = \
     {
-            '': 1,
+        'temp': 1,
     }
