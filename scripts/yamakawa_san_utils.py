@@ -151,7 +151,7 @@ def log_output(subject):
     logger.setLevel(logging.DEBUG)
     now = int(time.time())
 
-    log_dir = os.path.join(os.path.dirname("__file__"), "../mnt/logs")
+    log_dir = os.path.join(os.path.dirname("__file__"), "./mnt/logs")
     os.makedirs(log_dir, exist_ok=True)
 
     log_path = Path(log_dir) / "{}_{}.log".format(subject, now)
