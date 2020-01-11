@@ -19,9 +19,10 @@ class Features(metaclass=ABCMeta):
         self.input_dir = os.path.join(os.path.dirname("__file__"), "../input")
         self.df_path = Path(self.input_dir) / f"{self.datatype}.csv"
 
-        self.save_dir = os.path.join(
-            os.path.dirname("__file__"),
-            f"../../inputs/feature")
+        #self.save_dir = os.path.join(
+        #    os.path.dirname("__file__"),
+        #    f"../../inputs/feature")
+        self.save_dir = './mnt/inputs/features'
         self.save_type_dir = Path(self.save_dir) / f"{self.datatype}"
         self.save_path = Path(self.save_type_dir) / f"{self.name}.pkl"
         os.makedirs(self.save_dir, exist_ok=True)
@@ -46,6 +47,7 @@ class Features(metaclass=ABCMeta):
         feat_cols = [
             c for c in list(
                 feat_df.columns) if c not in self.org_columns]
+        print(f'save feats to {self.save_path}')
         pickle_dump(feat_df[feat_cols], self.save_path)
 
         del feat_df

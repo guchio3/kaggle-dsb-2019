@@ -1,14 +1,15 @@
 import importlib
 import os
+from pathlib import Path
 
-import numpy as np
 import pandas as pd
 
 from features.f001_suga_yama_features import (EncodingTitles, EventCount,
-                                              EventCount2,
+                                              EventCount2, KernelBasics2,
                                               PrevAssessAccByTitle,
                                               SessionTime2, Worldcount)
-from yamakawa_san_utils import OptimizedRounder, Validation, log_output, qwk, preprocess_dfs
+from yamakawa_san_utils import (OptimizedRounder, Validation, log_output,
+                                pickle_load, qwk, timer, base_path, memory_reducer)
 
 # set configs
 EXP_ID = os.path.basename(__file__).split('_')[0]
@@ -25,9 +26,172 @@ is_debug = False
 is_local = False
 
 
+def feature_maker(feat_cls, is_overwrite, org_train, org_test,
+                  train_labels, params, logger, is_local):
+    """featureの読み込み
+    """
+    feat_ = feat_cls(train_labels, params, logger)
+    feat_name = feat_.name
+    datatype = feat_.datatype
+    feature_dir = './mnt/inputs/features'
+    # feature_dir = os.path.join(os.path.dirname("__file__"), "../feature")
+    feature_path = Path(feature_dir) / f"{datatype}" / f"{feat_name}.pkl"
+
+    print(f'feature_path: {feature_path}')
+    print(f'os.path.exists(feature_path): {os.path.exists(feature_path)}')
+    print(f'is_overwrite: {is_overwrite}')
+    if os.path.exists(feature_path) and is_overwrite is False:
+        f_df = pickle_load(feature_path)
+    else:
+        f_df = feat_.feature_extract(org_train, org_test)
+
+    return f_df
+
+
+def add_features(use_features, org_train, org_test, train_labels,
+                 specs, datatype, is_local=False, logger=None):
+    # 都度計算する
+    feat_params = {
+        "datatype": datatype,
+        "debug": True,
+        "is_overwrite": True,
+    }
+
+    # base feature
+    base_feat = KernelBasics2(train_labels, feat_params, logger)
+    feature_dir = './mnt/inputs/features'
+    # feature_dir = os.path.join(os.path.dirname("__file__"), "../feature")
+    feature_path = Path(feature_dir) / f"{datatype}" / f"{base_feat.name}.pkl"
+
+    if os.path.exists(feature_path):
+        feat_df = pickle_load(feature_path)
+    else:
+        feat_df = base_feat.feature_extract(org_train, org_test)
+
+    # add event_counts
+    for name, feat_condition in use_features.items():
+        feat_cls = feat_condition[0]
+        is_overwrite = feat_condition[1]
+
+        f_df = feature_maker(
+            feat_cls,
+            is_overwrite,
+            org_train,
+            org_test,
+            train_labels,
+            feat_params,
+            logger,
+            is_local)
+        feat_df = pd.merge(
+            feat_df, f_df, how="left", on=[
+                "installation_id", "game_session"])
+        del f_df
+
+    return feat_df
+
+
+def preprocess_dfs(use_features, is_local=False, logger=None, debug=True):
+    # read dataframes
+    with timer("read datasets"):
+        if debug:
+            nrows = 200000
+        else:
+            nrows = None
+
+        sub = pd.read_csv(base_path + '/sample_submission.csv')
+
+        if is_local:
+            org_train = pickle_load("../input/train.pkl")
+            org_test = pickle_load("../input/test.pkl")
+        else:
+            org_train = pd.read_csv(base_path + "/train.csv", nrows=nrows)
+            org_test = pd.read_csv(base_path + "/test.csv", nrows=nrows)
+
+        org_train = memory_reducer(org_train, verbose=True)
+        org_test = org_test[org_test.installation_id.isin(sub.installation_id)]
+        org_test.sort_values(['installation_id', 'timestamp'], inplace=True)
+        org_test.reset_index(inplace=True)
+        org_test = memory_reducer(org_test, verbose=True)
+
+        train_labels = pd.read_csv(
+            base_path + "/train_labels.csv", nrows=nrows)
+        specs = pd.read_csv(base_path + "/specs.csv", nrows=nrows)
+
+    # basic preprocess
+    org_train["timestamp"] = pd.to_datetime(org_train["timestamp"])
+    org_test["timestamp"] = pd.to_datetime(org_test["timestamp"])
+
+    with timer("merging features"):
+        train_df = add_features(
+            use_features,
+            org_train,
+            org_test,
+            train_labels,
+            specs,
+            datatype="train",
+            is_local=is_local,
+            logger=None)
+        train_df = train_df.reset_index(drop=True)
+        test_df = add_features(
+            use_features,
+            org_train,
+            org_test,
+            train_labels,
+            specs,
+            datatype="test",
+            is_local=is_local,
+            logger=None)
+        test_df = test_df.reset_index(drop=True)
+
+#     df = pd.concat([df, feat_df], axis=1)
+    print("preprocess done!!")
+
+    return train_df, test_df
+
+
 def main():
-    train_df = pd.read_pickle('../mnt/inputs/origin/train.pkl.gz')
-    test_df = pd.read_csv('../mnt/inputs/origin/test.csv')
+    train_df = pd.read_pickle('./mnt/inputs/origin/train.pkl.gz')
+    test_df = pd.read_csv('./mnt/inputs/origin/test.csv')
+
+    # ==============================
+    # start processing
+    # ==============================
+    use_feature = {
+        "EventCount": [EventCount, True],  # class, is_overwrite
+        "EventCount2": [EventCount2, True],  # class, is_overwrite
+        "Worldcount": [Worldcount, False],
+        "SessionTime": [SessionTime2, False],
+        #     "AssessEventCount": [AssessEventCount, False],
+        "EncodingTitles": [EncodingTitles, False],
+        #     "PrevAssessResult":[PrevAssessResult, True],
+        #     "PrevAssessAcc": [PrevAssessAcc, True],
+        "PrevAssessAccByTitle": [PrevAssessAccByTitle, False]
+    }
+
+    is_local = False
+
+    if is_local:
+        base_path = "../input"  # at local
+        train_df, test_df = preprocess_dfs(
+            use_feature, is_local=is_local, logger=None, debug=False)
+
+    else:
+        base_path = './mnt/inputs/origin'  # at kaggle kernel
+        sub = pd.read_csv(
+            f'{base_path}/sample_submission.csv')
+#        base_path = '/kaggle/input/data-science-bowl-2019'  # at kaggle kernel
+#        if len(sub) == 1000:
+        if False:
+            sub.to_csv('submission.csv', index=False)
+            exit(0)
+        else:
+            train_df, test_df = preprocess_dfs(
+                use_feature, is_local=is_local, logger=None, debug=is_debug)
+
+    # remove , to avoid error of lgbm
+    train_df.columns = [col.replace(',', '_') for col in train_df.columns]
+    test_df.columns = [col.replace(',', '_') for col in test_df.columns]
+
 
     # train_params = {
     #     'learning_rate': 0.01,
@@ -131,40 +295,6 @@ def main():
         "exp_name": exp_name
     }
 
-    # ==============================
-    # start processing
-    # ==============================
-    use_feature = {
-        "EventCount": [EventCount, True],  # class, is_overwrite
-        "EventCount2": [EventCount2, True],  # class, is_overwrite
-        "Worldcount": [Worldcount, True],
-        "SessionTime": [SessionTime2, True],
-        #     "AssessEventCount": [AssessEventCount, False],
-        "EncodingTitles": [EncodingTitles, True],
-        #     "PrevAssessResult":[PrevAssessResult, True],
-        #     "PrevAssessAcc": [PrevAssessAcc, True],
-        "PrevAssessAccByTitle": [PrevAssessAccByTitle, True]
-    }
-
-    is_local = False
-
-    if is_local:
-        base_path = "../input"  # at local
-        train_df, test_df = preprocess_dfs(
-            use_feature, is_local=is_local, logger=None, debug=False)
-
-    else:
-        sub = pd.read_csv(
-            '../input/data-science-bowl-2019/sample_submission.csv')
-        base_path = '/kaggle/input/data-science-bowl-2019'  # at kaggle kernel
-#        if len(sub) == 1000:
-        if False:
-            sub.to_csv('submission.csv', index=False)
-            exit(0)
-        else:
-            train_df, test_df = preprocess_dfs(
-                use_feature, is_local=is_local, logger=None, debug=is_debug)
-
     v = Validation(validation_param, exp_conf, train_df, test_df, logger)
     clf, oof, prediction, feature_importance = v.do_valid_kfold(model_conf)
 
@@ -176,3 +306,7 @@ def main():
 
     opt_preds = optR.predict(oof, coefficients)
     print(qwk(train_df[target], opt_preds))
+
+
+if __name__ == '__main__':
+    main()

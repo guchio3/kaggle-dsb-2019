@@ -1,36 +1,25 @@
-import gc
-import json
 import logging
 import multiprocessing
 import os
 import pickle
-import random
-import re
 import sys
 import time
-from abc import ABCMeta, abstractmethod
 from contextlib import contextmanager
 from functools import partial
 from pathlib import Path
-from time import time
 from typing import Dict, List, Optional, Tuple, Union
 
-import lightgbm as lgb
-import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import scipy as sp
-import seaborn as sns
 from joblib import Parallel, delayed
-from lightgbm.callback import _format_eval_result
 from numba import jit
 from sklearn.metrics import mean_squared_error
 from sklearn.model_selection import (GroupKFold, KFold, StratifiedKFold,
                                      train_test_split)
-from sklearn.preprocessing import LabelEncoder, OneHotEncoder
-from tqdm import tqdm_notebook as tqdm
 
-from features.f000_feature_base import KernelBasics2
+import lightgbm as lgb
+from lightgbm.callback import _format_eval_result
 
 # import modules
 # sys.path.append('../utils/')
@@ -42,7 +31,7 @@ from features.f000_feature_base import KernelBasics2
 # from encoders import frequency_encoding
 
 
-base_path = '../mnt/inputs/origin'
+base_path = './mnt/inputs/origin'
 
 
 # ---------------------------
@@ -613,121 +602,3 @@ class OptimizedRounder(object):
         Return the optimized coefficients
         """
         return self.coef_['x']
-
-
-def preprocess_dfs(use_features, is_local=False, logger=None, debug=True):
-    # read dataframes
-    with timer("read datasets"):
-        if debug:
-            nrows = 200000
-        else:
-            nrows = None
-
-        sub = pd.read_csv(base_path + '/sample_submission.csv')
-
-        if is_local:
-            org_train = pickle_load("../input/train.pkl")
-            org_test = pickle_load("../input/test.pkl")
-        else:
-            org_train = pd.read_csv(base_path + "/train.csv", nrows=nrows)
-            org_test = pd.read_csv(base_path + "/test.csv", nrows=nrows)
-
-        org_train = memory_reducer(org_train, verbose=True)
-        org_test = org_test[org_test.installation_id.isin(sub.installation_id)]
-        org_test.sort_values(['installation_id', 'timestamp'], inplace=True)
-        org_test.reset_index(inplace=True)
-        org_test = memory_reducer(org_test, verbose=True)
-
-        train_labels = pd.read_csv(
-            base_path + "/train_labels.csv", nrows=nrows)
-        specs = pd.read_csv(base_path + "/specs.csv", nrows=nrows)
-
-    # basic preprocess
-    org_train["timestamp"] = pd.to_datetime(org_train["timestamp"])
-    org_test["timestamp"] = pd.to_datetime(org_test["timestamp"])
-
-    with timer("merging features"):
-        train_df = add_features(
-            use_features,
-            org_train,
-            org_test,
-            train_labels,
-            specs,
-            datatype="train",
-            is_local=is_local,
-            logger=None)
-        train_df = train_df.reset_index(drop=True)
-        test_df = add_features(
-            use_features,
-            org_train,
-            org_test,
-            train_labels,
-            specs,
-            datatype="test",
-            is_local=is_local,
-            logger=None)
-        test_df = test_df.reset_index(drop=True)
-
-#     df = pd.concat([df, feat_df], axis=1)
-    print("preprocess done!!")
-
-    return train_df, test_df
-
-
-def feature_maker(feat_cls, is_overwrite, org_train, org_test,
-                  train_labels, params, logger, is_local):
-    """featureの読み込み
-    """
-    feat_ = feat_cls(train_labels, params, logger)
-    feat_name = feat_.name
-    datatype = feat_.datatype
-    feature_dir = os.path.join(os.path.dirname("__file__"), "../feature")
-    feature_path = Path(feature_dir) / f"{datatype}" / f"{feat_name}.pkl"
-
-    if os.path.exists(feature_path) and is_overwrite is False:
-        f_df = pickle_load(feature_path)
-    else:
-        f_df = feat_.feature_extract(org_train, org_test)
-
-    return f_df
-
-
-def add_features(use_features, org_train, org_test, train_labels,
-                 specs, datatype, is_local=False, logger=None):
-    # 都度計算する
-    feat_params = {
-        "datatype": datatype,
-        "debug": True,
-        "is_overwrite": True,
-    }
-
-    # base feature
-    base_feat = KernelBasics2(train_labels, feat_params, logger)
-    feature_dir = os.path.join(os.path.dirname("__file__"), "../feature")
-    feature_path = Path(feature_dir) / f"{datatype}" / f"{base_feat.name}.pkl"
-
-    if os.path.exists(feature_path):
-        feat_df = pickle_load(feature_path)
-    else:
-        feat_df = base_feat.feature_extract(org_train, org_test)
-
-    # add event_counts
-    for name, feat_condition in use_features.items():
-        feat_cls = feat_condition[0]
-        is_overwrite = feat_condition[1]
-
-        f_df = feature_maker(
-            feat_cls,
-            is_overwrite,
-            org_train,
-            org_test,
-            train_labels,
-            feat_params,
-            logger,
-            is_local)
-        feat_df = pd.merge(
-            feat_df, f_df, how="left", on=[
-                "installation_id", "game_session"])
-        del f_df
-
-    return feat_df
