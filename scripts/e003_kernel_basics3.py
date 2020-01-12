@@ -5,21 +5,21 @@ from pathlib import Path
 import pandas as pd
 
 from features.f001_suga_yama_features import (EncodingTitles, EventCount,
-                                              EventCount2, KernelBasics2,
+                                              EventCount2,
                                               PrevAssessAccByTitle,
                                               SessionTime2, Worldcount)
-from features.f002_date_features import dateFeatures
+from features.f003_new_kernel_basics import KernelBasics3
 from yamakawa_san_utils import (OptimizedRounder, Validation, log_output,
                                 pickle_load, qwk, timer, base_path, memory_reducer)
 
 # set configs
 EXP_ID = os.path.basename(__file__).split('_')[0]
 
-CONFIG_MODULE = f'configs.{EXP_ID}_config'
-CONFIG_DICT = importlib.import_module(CONFIG_MODULE).CONFIG_DICT
+#CONFIG_MODULE = f'configs.{EXP_ID}_config'
+#CONFIG_DICT = importlib.import_module(CONFIG_MODULE).CONFIG_DICT
 
 
-exp_name = "suga_001_add_eventidcnt"
+exp_name = EXP_ID
 logger, log_path = log_output(exp_name)
 
 train_small_dataset = False
@@ -59,7 +59,7 @@ def add_features(use_features, org_train, org_test, train_labels,
     }
 
     # base feature
-    base_feat = KernelBasics2(train_labels, feat_params, logger)
+    base_feat = KernelBasics3(train_labels, feat_params, logger)
     feature_dir = './mnt/inputs/features'
     # feature_dir = os.path.join(os.path.dirname("__file__"), "../feature")
     feature_path = Path(feature_dir) / f"{datatype}" / f"{base_feat.name}.pkl"
@@ -158,8 +158,10 @@ def main():
     # start processing
     # ==============================
     use_feature = {
-        "EventCount": [EventCount, True],  # class, is_overwrite
-        "EventCount2": [EventCount2, True],  # class, is_overwrite
+        "EventCount": [EventCount, False],  # class, is_overwrite
+        "EventCount2": [EventCount2, False],  # class, is_overwrite
+        # "EventCount": [EventCount, True],  # class, is_overwrite
+        # "EventCount2": [EventCount2, True],  # class, is_overwrite
         "Worldcount": [Worldcount, False],
         "SessionTime": [SessionTime2, False],
         #     "AssessEventCount": [AssessEventCount, False],
@@ -306,7 +308,8 @@ def main():
     coefficients = optR.coefficients()
 
     opt_preds = optR.predict(oof, coefficients)
-    print(qwk(train_df[target], opt_preds))
+    # logger.info(f'valid qwk : {qwk(train_df[target], opt_preds)}')
+    print(f'valid qwk : {qwk(train_df[target], opt_preds)}')
 
 
 if __name__ == '__main__':
