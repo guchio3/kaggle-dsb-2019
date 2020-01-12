@@ -157,10 +157,8 @@ def main():
     # start processing
     # ==============================
     use_feature = {
-        "EventCount": [EventCount, False],  # class, is_overwrite
-        "EventCount2": [EventCount2, False],  # class, is_overwrite
-        # "EventCount": [EventCount, True],  # class, is_overwrite
-        # "EventCount2": [EventCount2, True],  # class, is_overwrite
+        "EventCount": [EventCount, True],  # class, is_overwrite
+        "EventCount2": [EventCount2, True],  # class, is_overwrite
         "Worldcount": [Worldcount, False],
         "SessionTime": [SessionTime2, False],
         #     "AssessEventCount": [AssessEventCount, False],
@@ -307,8 +305,7 @@ def main():
     coefficients = optR.coefficients()
 
     opt_preds = optR.predict(oof, coefficients)
-    # logger.info(f'valid qwk : {qwk(train_df[target], opt_preds)}')
-    print(f'valid qwk : {qwk(train_df[target], opt_preds)}')
+    print(qwk(train_df[target], opt_preds))
 
 
 if __name__ == '__main__':
