@@ -4,7 +4,7 @@ from features.f000_feature_base import Features
 from yamakawa_san_utils import applyParallel, groupings
 
 
-class dateFeatures(Features):
+class dtFeatures(Features):
     """
     date features
 
@@ -51,7 +51,15 @@ class dateFeatures(Features):
         # 計算量削減のため、対象行に限定
         df = df[ass_idx]
 
-        df[] = df.
+        ass_dt = pd.to_datetime(df.timestamp)
+        df['assesment_day'] = ass_dt.dt.day
+        df['assesment_dayofweek'] = ass_dt.dt.dayofweek
+        df['assesment_hour'] = ass_dt.dt.hour
+        df['assesment_month'] = ass_dt.dt.month
+        df['assesment_minute'] = ass_dt.dt.minute
+#        df['assesment_'] = ass_dt.dt.
 
-        df = 
+        df = df.set_index(['game_session', 'installation_id'])\
+                .add_prefix('dt_')\
+                .reset_index()
         return df

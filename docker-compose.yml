@@ -6,8 +6,8 @@ services:
             - $PWD:/root/workspace
         working_dir: /root/workspace
         ipc: host
-        environment:
-            - TZ=Asia/Tokyo
+        #        environment:
+        #            - TZ=Asia/Tokyo
         entrypoint: bash
     python:
         build: .
@@ -15,8 +15,8 @@ services:
             - $PWD:/root/workspace
         working_dir: /root/workspace
         ipc: host
-        environment:
-            - TZ=Asia/Tokyo
+        #        environment:
+        #            - TZ=Asia/Tokyo
         entrypoint: python
     jn:
         build: .
@@ -24,8 +24,8 @@ services:
             - $PWD:/root/workspace
         working_dir: /root/workspace/notebooks
         ipc: host
-        environment:
-            - TZ=Asia/Tokyo
+        # environment:
+        #     - TZ=Asia/Tokyo
         ports:
             - 8888:8888
         command: jupyter notebook --port 8888 --ip=0.0.0.0 --allow-root

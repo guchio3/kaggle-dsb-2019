@@ -68,7 +68,6 @@ class KernelBasics2(Features):
                                                              "game_session", "installation_id", "title",
                                                              "type"
                                                              ]]
-
         ret[ret_col] = ret[ret_col].fillna(0).astype("int32")
         self.format_and_save_feats(ret)
 

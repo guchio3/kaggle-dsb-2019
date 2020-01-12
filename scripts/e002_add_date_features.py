@@ -8,7 +8,7 @@ from features.f001_suga_yama_features import (EncodingTitles, EventCount,
                                               EventCount2, KernelBasics2,
                                               PrevAssessAccByTitle,
                                               SessionTime2, Worldcount)
-from features.f002_date_features import dateFeatures
+from features.f002_dt_features import dtFeatures
 from yamakawa_san_utils import (OptimizedRounder, Validation, log_output,
                                 pickle_load, qwk, timer, base_path, memory_reducer)
 
@@ -166,7 +166,8 @@ def main():
         "EncodingTitles": [EncodingTitles, False],
         #     "PrevAssessResult":[PrevAssessResult, True],
         #     "PrevAssessAcc": [PrevAssessAcc, True],
-        "PrevAssessAccByTitle": [PrevAssessAccByTitle, False]
+        "PrevAssessAccByTitle": [PrevAssessAccByTitle, False],
+        "dtFeatures": [dtFeatures, False],
     }
 
     is_local = False

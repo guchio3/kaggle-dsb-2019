@@ -4,6 +4,8 @@ import re
 import numpy as np
 import pandas as pd
 
+from tqdm import tqdm
+
 from features.f000_feature_base import Features
 from yamakawa_san_utils import applyParallel, groupings
 
@@ -67,6 +69,10 @@ class KernelBasics3(Features):
         ret = applyParallel(
             df.groupby("installation_id"),
             self.ins_id_sessions)
+        #_ret = []
+        #for grp_id, grp_df in tqdm(df.groupby("installation_id")):
+        #    _ret.append(self.ins_id_sessions(grp_df))
+        #ret = pd.concat(_ret)
         ret_col = [c for c in list(ret.columns) if c not in ["accuracy", "accuracy_group", "cum_accuracy",
                                                              "game_session", "installation_id", "title",
                                                              "type"
@@ -114,7 +120,8 @@ class KernelBasics3(Features):
         ins_id = df.installation_id.values[0]
 
         # assessmentのrowに限定して抽出する
-        if self.datatype == "train":
+        # if self.datatype == "train":
+        if False:
             # 正解ラベル/num_corrects を得るためtrain labelsとmerge
             pv = pd.merge(pv,
                           self.train_labels[self.train_labels.installation_id == ins_id],
