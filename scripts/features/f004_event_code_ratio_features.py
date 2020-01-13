@@ -80,7 +80,7 @@ class eventCodeRatioFeatures(Features):
 
         pv = pv.loc[pv["type"] == "Assessment"]  # assessment だけとればOK
 
-        pv_cum_col_sum = pv[cum_cols].sum(axis=1)
+        pv_cum_col_sum = pv[cum_cols].sum(axis=1).values.reshape(-1, 1)
         pv[cum_cols] = (pv[cum_cols] / pv_cum_col_sum).values
 
         rename_dict = {}

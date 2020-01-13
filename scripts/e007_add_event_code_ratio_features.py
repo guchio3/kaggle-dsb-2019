@@ -9,13 +9,13 @@ import pandas as pd
 from features.f001_suga_yama_features import (EncodingTitles, EventCount,
                                               EventCount2, KernelBasics2,
                                               PrevAssessAccByTitle,
-                                              SessionTime2, Validation,
-                                              Worldcount)
+                                              SessionTime2, Worldcount)
 # from features.f002_dt_features import dtFeatures
 from features.f004_event_code_ratio_features import eventCodeRatioFeatures
 # from guchio_utils import guchioValidation
-from yamakawa_san_utils import (OptimizedRounder, base_path, log_output,
-                                memory_reducer, pickle_load, qwk, timer)
+from yamakawa_san_utils import (OptimizedRounder, Validation, base_path,
+                                log_output, memory_reducer, pickle_load, qwk,
+                                timer)
 
 # set configs
 EXP_ID = os.path.basename(__file__).split('_')[0]
@@ -173,7 +173,7 @@ def main():
         #     "PrevAssessAcc": [PrevAssessAcc, True],
         "PrevAssessAccByTitle": [PrevAssessAccByTitle, False],
         #     "dtFeatures": [dtFeatures, False],
-        "eventCodeRatioFeatures": [eventCodeRatioFeatures, False],
+        # "eventCodeRatioFeatures": [eventCodeRatioFeatures, False],
     }
 
     is_local = False
