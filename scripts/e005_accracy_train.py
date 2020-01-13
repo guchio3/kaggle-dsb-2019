@@ -225,8 +225,7 @@ def main():
         'lambda_l1': 0.2,
         'lambda_l2': 0.4,
         'seed': 19930802,
-        'n_estimators': 100000,
-        'importance_type': 'gain'
+        'n_estimators': 100000
     }
 
     bad_feats = [
@@ -276,7 +275,8 @@ def main():
 
     # logger.log(logging.DEBUG, f"categorical cols: {cat_cols}")
 
-    target = "accuracy_group"
+    # target = "accuracy_group"
+    target = "accuracy"
 
     model_conf = {
         "predict_type": "regressor",
@@ -306,11 +306,11 @@ def main():
     test_pred = prediction.copy()
 
     optR = OptimizedRounder()
-    optR.fit(oof, train_df[target])
+    optR.fit(oof, train_df['accuracy_group'], initial_coef=[0.012, 0.25, 0.75])
     coefficients = optR.coefficients()
 
     opt_preds = optR.predict(oof, coefficients)
-    print(qwk(train_df[target], opt_preds))
+    print(qwk(train_df['accuracy_group'], opt_preds))
     logger.log(logging.DEBUG, f'qwk -- {qwk(train_df[target], opt_preds)}')
 
     # save info

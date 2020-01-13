@@ -575,7 +575,7 @@ class OptimizedRounder(object):
 
         return -qwk(y, X_p)
 
-    def fit(self, X, y):
+    def fit(self, X, y, initial_coef=[0.5, 1.5, 2.5]):
         """
         Optimize rounding thresholds
 
@@ -583,7 +583,6 @@ class OptimizedRounder(object):
         :param y: The ground truth labels
         """
         loss_partial = partial(self._kappa_loss, X=X, y=y)
-        initial_coef = [0.5, 1.5, 2.5]
         self.coef_ = sp.optimize.minimize(
             loss_partial, initial_coef, method='nelder-mead')
 
