@@ -175,8 +175,7 @@ def main():
         "PrevAssessAccByTitle": [PrevAssessAccByTitle, False],
         #     "dtFeatures": [dtFeatures, False],
         # "eventCodeRatioFeatures": [eventCodeRatioFeatures, False],
-        "eventCodeRatioFeatures": [eventCodeRatioFeatures, False],
-        # "eventIDRatioFeatures": [eventIDRatioFeatures, False],
+        "eventIDRatioFeatures": [eventIDRatioFeatures, False],
     }
 
     is_local = False
