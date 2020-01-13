@@ -168,7 +168,7 @@ def main():
         #     "PrevAssessResult":[PrevAssessResult, True],
         #     "PrevAssessAcc": [PrevAssessAcc, True],
         "PrevAssessAccByTitle": [PrevAssessAccByTitle, False],
-        "dtFeatures": [dtFeatures, False],
+        #     "dtFeatures": [dtFeatures, False],
     }
 
     is_local = False
@@ -216,7 +216,8 @@ def main():
         'boosting_type': 'gbdt',
         'objective': 'regression',
         'metric': 'rmse',
-        'num_leaves': 64,
+        # 'num_leaves': 64,
+        'num_leaves': 16,
         'bagging_fraction': 0.9,
         'bagging_freq': 1,
         'feature_fraction': 0.7,

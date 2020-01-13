@@ -1,7 +1,11 @@
+import os
+
 import pandas as pd
 
 from features.f000_feature_base import Features
 from yamakawa_san_utils import applyParallel, groupings
+
+FEATURE_ID = os.path.basename(__file__).split('_')[0]
 
 
 class dtFeatures(Features):
@@ -30,7 +34,7 @@ class dtFeatures(Features):
         #                                                     "game_session", "installation_id", "title",
         #                                                     "type"]]
         # ret[ret_col] = ret[ret_col].fillna(0)
-        # 
+        #
         # use_cols = [c for c in list(ret.columns) if c not in []]
         # self.format_and_save_feats(ret[use_cols])
         self.format_and_save_feats(ret)
@@ -52,14 +56,24 @@ class dtFeatures(Features):
         df = df[ass_idx]
 
         ass_dt = pd.to_datetime(df.timestamp)
-        df['assesment_day'] = ass_dt.dt.day
-        df['assesment_dayofweek'] = ass_dt.dt.dayofweek
-        df['assesment_hour'] = ass_dt.dt.hour
-        df['assesment_month'] = ass_dt.dt.month
-        df['assesment_minute'] = ass_dt.dt.minute
+        df['assesment_day'] = ass_dt.dt.day.values
+        df['assesment_dayofweek'] = ass_dt.dt.dayofweek.values
+        df['assesment_hour'] = ass_dt.dt.hour.values
+        df['assesment_month'] = ass_dt.dt.month.values
+        df['assesment_minute'] = ass_dt.dt.minute.values
 #        df['assesment_'] = ass_dt.dt.
 
+        df = df[[
+            'game_session',
+            'installation_id',
+            'assesment_day',
+            'assesment_dayofweek',
+            'assesment_hour',
+            'assesment_month',
+            'assesment_minute',
+        ]]
+
         df = df.set_index(['game_session', 'installation_id'])\
-                .add_prefix('dt_')\
-                .reset_index()
+            .add_prefix(f'{FEATURE_ID}_dt_')\
+            .reset_index()
         return df
