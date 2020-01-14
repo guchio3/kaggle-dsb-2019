@@ -8,7 +8,7 @@ from yamakawa_san_utils import applyParallel, groupings
 FEATURE_ID = os.path.basename(__file__).split('_')[0]
 
 
-class dtFeatures(Features):
+class immediatelyBeforeFeatures(Features):
     """
     date features
 
@@ -29,51 +29,38 @@ class dtFeatures(Features):
 
         ret = applyParallel(
             df.groupby("installation_id"),
-            self.get_dt_features)
-        # ret_col = [c for c in list(ret.columns) if c not in ["accuracy", "accuracy_group", "cum_accuracy",
-        #                                                     "game_session", "installation_id", "title",
-        #                                                     "type"]]
-        # ret[ret_col] = ret[ret_col].fillna(0)
-        #
-        # use_cols = [c for c in list(ret.columns) if c not in []]
-        # self.format_and_save_feats(ret[use_cols])
+            self._calc_features)
+
         self.format_and_save_feats(ret)
 
         return ret
 
-    def get_dt_features(self, df):
-        """session当該session直前までのactivityを示す
-        Args:
-            df: df grouped by installation_id
+    def _calc_features(self, df):
         """
+        """
+        df["gs_max_time"] = df.groupby("game_session")["timestamp"]\
+            .transform("max")  # gs_max_timeでsortする必要がある
+        df = df.sort_values('gs_max_time')
+
+        # 計算量削減のため、必要なもののみ取得
+        # この class の場合、ass とその直前の session のみ必要
         ass_idx = (((df.event_code == 4100)
                     & (df.type == "Assessment")
                     & (df.title != "Bird Measurer (Assessment)"))
                    | ((df.event_code == 4110)
                       & (df.type == "Assessment")
                       & (df.title == "Bird Measurer (Assessment)"))).values
+        ass_sessions = df[ass_idx].game_session.unique()
+        df['is_in_ass_session'] = 
+
+        df.groupby()
+
         # 計算量削減のため、対象行に限定
         df = df[ass_idx]
-
-        ass_dt = pd.to_datetime(df.timestamp)
-        df['assesment_day'] = ass_dt.dt.day.values
-        df['assesment_dayofweek'] = ass_dt.dt.dayofweek.values
-        df['assesment_hour'] = ass_dt.dt.hour.values
-        df['assesment_month'] = ass_dt.dt.month.values
-        df['assesment_minute'] = ass_dt.dt.minute.values
-#        df['assesment_'] = ass_dt.dt.
-
-        df = df[[
-            'game_session',
-            'installation_id',
-            'assesment_day',
-            'assesment_dayofweek',
-            'assesment_hour',
-            'assesment_month',
-            'assesment_minute',
-        ]]
 
         df = df.set_index(['game_session', 'installation_id'])\
             .add_prefix(f'{FEATURE_ID}_dt_')\
             .reset_index()
         return df
+
+    def _
