@@ -223,7 +223,8 @@ def main():
         'lambda_l1': 0.2,
         'lambda_l2': 0.4,
         'seed': 19930802,
-        'n_estimators': 100000
+        'n_estimators': 100000,
+        'importance_type': 'gain',
     }
 
     bad_feats = [
@@ -298,7 +299,7 @@ def main():
     }
 
     v = Validation(validation_param, exp_conf, train_df, test_df, logger)
-    clf, oof, prediction, feature_importance = v.do_valid_kfold(model_conf)
+    clf, oof, prediction, feature_importance_df = v.do_valid_kfold(model_conf)
 
     test_pred = prediction.copy()
 
@@ -309,6 +310,9 @@ def main():
     opt_preds = optR.predict(oof, coefficients)
     # logger.info(f'valid qwk : {qwk(train_df[target], opt_preds)}')
     print(f'valid qwk : {qwk(train_df[target], opt_preds)}')
+
+    feature_importance_df.to_csv(
+        f'./mnt/importances/{EXP_ID}.csv', index=False)
 
 
 if __name__ == '__main__':

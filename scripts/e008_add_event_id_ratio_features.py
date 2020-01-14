@@ -231,7 +231,8 @@ def main():
         'lambda_l1': 0.2,
         'lambda_l2': 0.4,
         'seed': 19930802,
-        'n_estimators': 100000
+        'n_estimators': 100000,
+        'importance_type': 'gain',
     }
 
     bad_feats = [
