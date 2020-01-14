@@ -69,11 +69,13 @@ class KernelBasics2(Features):
                                                              "type"
                                                              ]]
         ret[ret_col] = ret[ret_col].fillna(0).astype("int32")
-        self.format_and_save_feats(ret)
 
         use_cols = [c for c in list(ret.columns) if "Assessment" not in c]
+        ret = ret[use_cols]
 
-        return ret[use_cols]
+        self.format_and_save_feats(ret)
+
+        return ret
 
     def ins_id_sessions(self, df):
         """session当該session直前までのactivityを示す

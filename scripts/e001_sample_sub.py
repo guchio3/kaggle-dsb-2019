@@ -147,7 +147,8 @@ def preprocess_dfs(use_features, is_local=False, logger=None, debug=True):
 
 #     df = pd.concat([df, feat_df], axis=1)
     print("preprocess done!!")
-    train_df.to_csv('./scratch_generated_train1.csv', index=False)
+    # train_df.to_csv('./scratch_generated_train1.csv', index=False)
+    # train_df.to_csv('./generated_train1.csv', index=False)
 
     return train_df, test_df
 
