@@ -68,6 +68,8 @@ def add_features(use_features, org_train, org_test, train_labels,
     else:
         feat_df = base_feat.feature_extract(org_train, org_test)
 
+    feat_df = feat_df.sort_values(['game_session', 'installation_id']).reset_index(drop=True)
+
     # add event_counts
     for name, feat_condition in use_features.items():
         feat_cls = feat_condition[0]
@@ -145,6 +147,7 @@ def preprocess_dfs(use_features, is_local=False, logger=None, debug=True):
 
 #     df = pd.concat([df, feat_df], axis=1)
     print("preprocess done!!")
+    train_df.to_csv('./scratch_generated_train1.csv', index=False)
 
     return train_df, test_df
 

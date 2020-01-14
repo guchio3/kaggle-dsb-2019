@@ -580,8 +580,10 @@ class EncodingTitles(Features):
         self.train_labels = train_labels
 
     def get_encoder(self, org_train, org_test):
-        self.all_activities = set(org_train["title"].unique()).union(
-            set(org_test["title"].unique()))
+        self.all_activities = np.sort(list(set(org_train["title"].unique()).union(
+            set(org_test["title"].unique()))))
+        # self.all_activities = set(org_train["title"].unique()).union(
+        #     set(org_test["title"].unique()))
         self.all_event_codes = set(org_train["event_code"].unique()).union(
             org_test["event_code"].unique())
         self.activities_map = dict(
