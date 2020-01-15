@@ -1,6 +1,7 @@
 # import importlib
 import logging
 import os
+import pickle
 from pathlib import Path
 
 # import numpy as np
@@ -322,12 +323,18 @@ def main():
 
     opt_preds = optR.predict(oof, coefficients)
 
+    oof_dir = f'./mnt/oofs/{EXP_ID}'
+    if not os.path.exists(oof_dir):
+        os.mkdir(oof_dir)
+    with open(f'{oof_dir}/{EXP_ID}_oof.pkl', 'wb') as fout:
+        pickle.dump(oof, fout)
+
     res_qwk = qwk(train_df['accuracy_group'], opt_preds)
     print(f'res_qwk : {res_qwk}')
     logger.log(
-            logging.DEBUG,
-            f'qwk -- {res_qwk}'
-        )
+        logging.DEBUG,
+        f'qwk -- {res_qwk}'
+    )
 
 #     print(f'qwk -- {np.mean(valid_qwks)} +- {np.std(valid_qwks)}')
 #     logger.log(
