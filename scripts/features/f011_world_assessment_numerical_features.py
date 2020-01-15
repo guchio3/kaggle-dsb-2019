@@ -122,7 +122,7 @@ class worldAssessmentNumeriacalFeatures(Features):
             res_df = pd.DataFrame([res_df.iloc[-1, :]])
 
         res_df = res_df\
-            .set_inde(['installaiton_id', 'game_session'])\
+            .set_index(['installaiton_id', 'game_session'])\
             .add_prefix(f'{FEATURE_ID}_worldwise_assessment_')\
             .reset_index()
 
