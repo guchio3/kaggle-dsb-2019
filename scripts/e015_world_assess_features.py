@@ -186,6 +186,7 @@ def main():
         "immediatelyBeforeFeatures": [immediatelyBeforeFeatures, False],
         # "worldLabelEncodingDiffFeatures": [worldLabelEncodingDiffFeatures, False],
         "worldNumeriacalFeatures": [worldNumeriacalFeatures, False],
+        "worldAssessmentNumeriacalFeatures": [worldAssessmentNumeriacalFeatures, False],
     }
 
     is_local = False

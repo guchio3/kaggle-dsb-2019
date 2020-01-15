@@ -19,6 +19,7 @@ from features.f008_immediately_before_features import immediatelyBeforeFeatures
 from features.f009_world_label_encoding_diff import worldLabelEncodingDiffFeatures
 from features.f010_world_numerical_features import worldNumeriacalFeatures
 from features.f011_world_assessment_numerical_features import worldAssessmentNumeriacalFeatures
+from features.f012_world_activity_numerical_features import worldActivityNumeriacalFeatures
 # from guchio_utils import guchioValidation
 from yamakawa_san_utils import (OptimizedRounder, Validation, base_path,
                                 log_output, memory_reducer, pickle_load, qwk,
@@ -186,6 +187,8 @@ def main():
         "immediatelyBeforeFeatures": [immediatelyBeforeFeatures, False],
         # "worldLabelEncodingDiffFeatures": [worldLabelEncodingDiffFeatures, False],
         "worldNumeriacalFeatures": [worldNumeriacalFeatures, False],
+        "worldAssessmentNumeriacalFeatures": [worldAssessmentNumeriacalFeatures, False],
+        "worldActivityNumeriacalFeatures": [worldActivityNumeriacalFeatures, False]
     }
 
     is_local = False
@@ -353,3 +356,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+

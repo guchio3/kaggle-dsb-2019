@@ -10,7 +10,7 @@ from yamakawa_san_utils import applyParallel
 FEATURE_ID = os.path.basename(__file__).split('_')[0]
 
 
-class worldAssessmentNumeriacalFeatures(Features):
+class worldActivityNumeriacalFeatures(Features):
     def __init__(self, train_labels, params, logger=None):
         super().__init__(params, logger=logger)
         self.train_labels = train_labels
@@ -28,15 +28,15 @@ class worldAssessmentNumeriacalFeatures(Features):
             df = df.loc[df.installation_id.isin(
                 self.train_labels.installation_id.unique())]
         else:
-            # $BD>A0$^$G$N(Bnum_correct/incorrect$B$r<hF@$9$k(B
+            # 直前までのnum_correct/incorrectを取得する
             df = org_test
 
-        c_ass_idx = ((df.type == "Assesment")
+        c_ass_idx = ((df.type == "Activity")
                      & (df["event_data"].str.contains("true"))) | \
             ((df.type == "Assesment")
              & (df["event_data"].str.contains("true")))
 
-        inc_ass_idx = ((df.type == "Assesment")
+        inc_ass_idx = ((df.type == "Activity")
                        & (df["event_data"].str.contains("false"))) | \
             ((df.type == "Assesment")
              & (df["event_data"].str.contains("false")))
@@ -123,7 +123,7 @@ class worldAssessmentNumeriacalFeatures(Features):
 
         res_df = res_df\
             .set_inde(['installaiton_id', 'game_session'])\
-            .add_prefix(f'{FEATURE_ID}_worldwise_assessment_')\
+            .add_prefix(f'{FEATURE_ID}_worldwise_activity_')\
             .reset_index()
 
         return res_df
