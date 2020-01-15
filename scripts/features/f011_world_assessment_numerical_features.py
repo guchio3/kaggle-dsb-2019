@@ -31,14 +31,14 @@ class worldAssessmentNumeriacalFeatures(Features):
             # 直前までのnum_correct/incorrectを取得する
             df = org_test
 
-        c_ass_idx = ((df.type == "Assesment")
+        c_ass_idx = ((df.type == "Assessment")
                      & (df["event_data"].str.contains("true"))) | \
-            ((df.type == "Assesment")
+            ((df.type == "Assessment")
              & (df["event_data"].str.contains("true")))
 
-        inc_ass_idx = ((df.type == "Assesment")
+        inc_ass_idx = ((df.type == "Assessment")
                        & (df["event_data"].str.contains("false"))) | \
-            ((df.type == "Assesment")
+            ((df.type == "Assessment")
              & (df["event_data"].str.contains("false")))
 
         df.loc[c_ass_idx, 'num_correct'] = 1
@@ -118,12 +118,12 @@ class worldAssessmentNumeriacalFeatures(Features):
         res_df['world_accracy_std_std'] = res_df[[
             f'{world}_accuracy_std' for world in worlds]].std(axis=1).values
 
+#         res_df = res_df\
+#             .set_index(['installation_id', 'game_session'])\
+#             .add_prefix(f'{FEATURE_ID}_worldwise_assessment_')\
+#             .reset_index()
+
         if self.datatype == "test":
             res_df = pd.DataFrame([res_df.iloc[-1, :]])
-
-        res_df = res_df\
-            .set_index(['installaiton_id', 'game_session'])\
-            .add_prefix(f'{FEATURE_ID}_worldwise_assessment_')\
-            .reset_index()
 
         return res_df
