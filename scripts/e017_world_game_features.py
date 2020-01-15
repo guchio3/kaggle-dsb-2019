@@ -188,8 +188,8 @@ def main():
         "immediatelyBeforeFeatures": [immediatelyBeforeFeatures, False],
         # "worldLabelEncodingDiffFeatures": [worldLabelEncodingDiffFeatures, False],
         "worldNumeriacalFeatures": [worldNumeriacalFeatures, False],
-        "worldAssessmentNumeriacalFeatures": [worldAssessmentNumeriacalFeatures, False],
-        "worldActivityNumeriacalFeatures": [worldActivityNumeriacalFeatures, False],
+        # "worldAssessmentNumeriacalFeatures": [worldAssessmentNumeriacalFeatures, False],
+        # "worldActivityNumeriacalFeatures": [worldActivityNumeriacalFeatures, False],
         "worldGameNumeriacalFeatures": [worldGameNumeriacalFeatures, False],
     }
 
@@ -322,6 +322,7 @@ def main():
         "exp_name": exp_name
     }
 
+    logger.log(logging.DEBUG, f'train_df shape : {train_df.shape}')
     v = Validation(validation_param, exp_conf, train_df, test_df, logger)
     clf, oof, prediction, feature_importance_df \
         = v.do_valid_kfold(model_conf)
