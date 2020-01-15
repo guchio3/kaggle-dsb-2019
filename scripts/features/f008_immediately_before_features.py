@@ -1,5 +1,6 @@
 import os
 
+import numpy as np
 import pandas as pd
 
 from features.f000_feature_base import Features
@@ -60,7 +61,7 @@ class immediatelyBeforeFeatures(Features):
         # game session 毎に feature を作る
         df = df.sort_values(['game_session', 'timestamp'])\
             .reset_index(drop=True)
-        grp_features_df = df.groupby('game_session').agg(
+        grp_features_df = df.groupby(['installation_id', 'game_session']).agg(
             {
                 'timestamp': ['max'],
                 'event_count': ['max'],
@@ -99,29 +100,11 @@ class immediatelyBeforeFeatures(Features):
         # session 順を保証
         grp_features_df = grp_features_df.sort_values('timestamp_max')
 
-        res_grp_features_df = grp_features_df[]
-
-
-        # 計算量削減のため、必要なもののみ取得
-        # この class の場合、ass とその直前の session のみ必要
-        ass_idx = (((df.event_code == 4100)
-                    & (df.type == "Assessment")
-                    & (df.title != "Bird Measurer (Assessment)"))
-                   | ((df.event_code == 4110)
-                      & (df.type == "Assessment")
-                      & (df.title == "Bird Measurer (Assessment)"))).values
-        ass_sessions = df[ass_idx].game_session.unique()
-        is_in_ass_session = df.game_sessin.isin(ass_sessions)
-        # 一つ前の session も使用
-        feat_sessions = df[is_in_ass_session |
-                           is_in_ass_session.shift(-1)].game_session.unique()
-
-        df.groupby()
-
-        # 計算量削減のため、対象行に限定
-        df = df[ass_idx]
-
-        df = df.set_index(['game_session', 'installation_id'])\
-            .add_prefix(f'{FEATURE_ID}_dt_')\
+        # shift
+        res_grp_features_df = grp_features_df\
+            .set_index(['installation_id', 'game_session'])\
+            .add_prefix(f'{FEATURE_ID}_{SHIFT}th_before_session_')\
+            .shift(SHIFT)\
             .reset_index()
-        return df
+
+        return res_grp_features_df
