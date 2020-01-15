@@ -10,7 +10,7 @@ from yamakawa_san_utils import applyParallel
 FEATURE_ID = os.path.basename(__file__).split('_')[0]
 
 
-class worldNumeriacalFeatures(Features):
+class worldNumeriacalAssessmentFeatures(Features):
     def __init__(self, train_labels, params, logger=None):
         super().__init__(params, logger=logger)
         self.train_labels = train_labels
@@ -31,18 +31,14 @@ class worldNumeriacalFeatures(Features):
             # 直前までのnum_correct/incorrectを取得する
             df = org_test
 
-        c_ass_idx = ((df.event_code == 4100)
-                     & (df.title != "Bird Measurer (Assessment)")
+        c_ass_idx = ((df.type == "Assesment")
                      & (df["event_data"].str.contains("true"))) | \
-            ((df.event_code == 4110)
-             & (df.title == "Bird Measurer (Assessment)")
+            ((df.type == "Assesment")
              & (df["event_data"].str.contains("true")))
 
-        inc_ass_idx = ((df.event_code == 4100)
-                       & (df.title != "Bird Measurer (Assessment)")
+        inc_ass_idx = ((df.type == "Assesment")
                        & (df["event_data"].str.contains("false"))) | \
-            ((df.event_code == 4110)
-             & (df.title == "Bird Measurer (Assessment)")
+            ((df.type == "Assesment")
              & (df["event_data"].str.contains("false")))
 
         df.loc[c_ass_idx, 'num_correct'] = 1
@@ -63,12 +59,6 @@ class worldNumeriacalFeatures(Features):
                 'num_incorrect': ['sum'],
                 'game_time': ['max', 'std'],
                 'event_count': ['max'],
-                #                 'title': {
-                #                     'Clip_num': lambda x: (x == "Clip").sum(),
-                #                     'Activity_num': lambda x: (x == "Activity").sum(),
-                #                     'Game_num': lambda x: (x == "Game").sum(),
-                #                     'Assessment_num': lambda x: (x == "Assessment").sum(),
-                #                     }
             }
         )
 
@@ -181,5 +171,10 @@ class worldNumeriacalFeatures(Features):
 
         if self.datatype == "test":
             res_df = pd.DataFrame([res_df.iloc[-1, :]])
+
+        res_df = res_df\
+            .set_inde(['installaiton_id', 'game_session'])\
+            .add_prefix(f'{FEATURE_ID}_worldwise_assessment_')\
+            .reset_index()
 
         return res_df

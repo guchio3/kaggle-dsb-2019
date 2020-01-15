@@ -231,8 +231,8 @@ def main():
         'boosting_type': 'gbdt',
         'objective': 'regression',
         'metric': 'rmse',
-        # 'num_leaves': 64,
-        'num_leaves': 16,
+        'num_leaves': 64,
+        # 'num_leaves': 16,
         'bagging_fraction': 0.9,
         'bagging_freq': 1,
         'feature_fraction': 0.7,
@@ -321,7 +321,7 @@ def main():
         = v.do_valid_kfold(model_conf)
 
     optR = OptimizedRounder()
-    optR.fit(oof, train_df['accuracy_group'])
+    optR.fit(oof, train_df['accuracy_group'], initial_coef=[1.0, 1.5, 2.9])
     # optR.fit(oof, train_df['accuracy_group'])
     coefficients = optR.coefficients()
 
