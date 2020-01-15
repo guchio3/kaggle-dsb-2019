@@ -99,10 +99,11 @@ class immediatelyBeforeFeatures(Features):
             f'{col[0]}_{col[1]}' for col in grp_features_df.columns]
         # session 順を保証
         grp_features_df = grp_features_df.sort_values('timestamp_max')
+        grp_features_df = grp_features_df.drop('timestamp_max', axis=1)
 
         # shift
+#            .set_index(['installation_id', 'game_session'])\
         res_grp_features_df = grp_features_df\
-            .set_index(['installation_id', 'game_session'])\
             .add_prefix(f'{FEATURE_ID}_{SHIFT}th_before_session_')\
             .shift(SHIFT)\
             .reset_index()
