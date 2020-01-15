@@ -56,8 +56,9 @@ class worldNumeriacalFeatures(Features):
         return ret
 
     def _calc_features(self, df):
-        grp_df = df.groupby(['installation_id', 'game_session']).agg(
+        grp_df = df.groupby(['installation_id', 'game_session', 'world']).agg(
             {
+                'timestamp': ['max', ],
                 'num_correct': ['sum'],
                 'num_incorrect': ['sum'],
                 'game_time': ['max', 'std'],
@@ -77,7 +78,10 @@ class worldNumeriacalFeatures(Features):
         grp_df['accuracy'] = grp_df['num_correct_sum'] / \
             (grp_df['num_correct_sum'] + grp_df['num_incorrect_sum'])
 
-        res_df = grp_df[['installation_id', 'game_session']]
+        grp_df = grp_df.sort_values('timestamp_max')
+        grp_df = grp_df.drop('timestamp_max', axis=1)
+
+        res_df = grp_df.reset_index()[['installation_id', 'game_session']]
 
         for world in ['MAGMAPEAK', 'CRYSTALCAVES', 'TREETOPCITY', 'NONE']:
             _df = grp_df.copy()
