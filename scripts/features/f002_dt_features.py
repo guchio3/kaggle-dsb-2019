@@ -46,14 +46,14 @@ class dtFeatures(Features):
         Args:
             df: df grouped by installation_id
         """
-        ass_idx = (((df.event_code == 4100)
-                    & (df.type == "Assessment")
-                    & (df.title != "Bird Measurer (Assessment)"))
-                   | ((df.event_code == 4110)
-                      & (df.type == "Assessment")
-                      & (df.title == "Bird Measurer (Assessment)"))).values
+        # ass_idx = (((df.event_code == 4100)
+        #             & (df.type == "Assessment")
+        #             & (df.title != "Bird Measurer (Assessment)"))
+        #            | ((df.event_code == 4110)
+        #               & (df.type == "Assessment")
+        #               & (df.title == "Bird Measurer (Assessment)"))).values
         # 計算量削減のため、対象行に限定
-        df = df[ass_idx]
+        # df = df[ass_idx]
 
         ass_dt = pd.to_datetime(df.timestamp)
         df['assesment_day'] = ass_dt.dt.day.values
@@ -72,6 +72,7 @@ class dtFeatures(Features):
             'assesment_month',
             'assesment_minute',
         ]]
+        df = df.groupby(['installation_id', 'game_session']).min().reset_index()
 
         df = df.set_index(['game_session', 'installation_id'])\
             .add_prefix(f'{FEATURE_ID}_dt_')\
