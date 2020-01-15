@@ -183,7 +183,7 @@ def main():
         # "eventCodeRatioFeatures": [eventCodeRatioFeatures, False],
         # "eventIDRatioFeatures": [eventIDRatioFeatures, False],
         "immediatelyBeforeFeatures": [immediatelyBeforeFeatures, False],
-        "worldLabelEncodingDiffFeatures": [worldLabelEncodingDiffFeatures, False],
+        # "worldLabelEncodingDiffFeatures": [worldLabelEncodingDiffFeatures, False],
         "worldNumeriacalFeatures": [worldNumeriacalFeatures, True],
     }
 
