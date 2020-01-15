@@ -62,12 +62,12 @@ class worldNumeriacalFeatures(Features):
                 'num_incorrect': ['sum'],
                 'game_time': ['max', 'std'],
                 'event_count': ['max'],
-                'title': {
-                    'Clip_num': lambda x: (x == "Clip").sum(),
-                    'Activity_num': lambda x: (x == "Activity").sum(),
-                    'Game_num': lambda x: (x == "Game").sum(),
-                    'Assessment_num': lambda x: (x == "Assessment").sum(),
-                    }
+#                 'title': {
+#                     'Clip_num': lambda x: (x == "Clip").sum(),
+#                     'Activity_num': lambda x: (x == "Activity").sum(),
+#                     'Game_num': lambda x: (x == "Game").sum(),
+#                     'Assessment_num': lambda x: (x == "Assessment").sum(),
+#                     }
             }
         )
 
@@ -86,30 +86,72 @@ class worldNumeriacalFeatures(Features):
             res_df[f'{world}_accuracy_max'] = \
                 _df['accuracy'].rolling(
                 window=len(_df), min_periods=1).max()
-
-                
-
-
-
-
-
-            res_df[f'{world}_enc_diff_min'] = \
-                _df['title_enc'].rolling(
+            res_df[f'{world}_accuracy_min'] = \
+                _df['accuracy'].rolling(
+                window=len(_df), min_periods=1).min()
+            res_df[f'{world}_accuracy_mean'] = \
+                _df['accuracy'].rolling(
+                window=len(_df), min_periods=1).mean()
+            res_df[f'{world}_accuracy_std'] = \
+                _df['accuracy'].rolling(
+                window=len(_df), min_periods=1).std()
+            res_df[f'{world}_just_before_accuracy'] = \
+                _df['accuracy'].rolling(
                 window=len(_df), min_periods=1).apply(
-                lambda x: pd.Series(x).dropna().diff().min())
-            res_df[f'{world}_enc_diff_mean'] = \
-                _df['title_enc'].rolling(
-                window=len(_df), min_periods=1).apply(
-                lambda x: pd.Series(x).dropna().diff().mean())
-            res_df[f'{world}_enc_diff_std'] = \
-                _df['title_enc'].rolling(
-                window=len(_df), min_periods=1).apply(
-                lambda x: pd.Series(x).dropna().diff().std())
-            res_df[f'{world}_enc_just_before'] = df['title_enc'].apply(
                 lambda x: pd.Series(x).dropna().iloc[-1])
-            res_df[f'{world}_enc_diff_just_before'] = df['title_enc'] - \
-                res_df[f'{world}_enc_just_before']
+
+            res_df[f'{world}_game_time_max_max'] = \
+                _df['game_time_max'].rolling(
+                window=len(_df), min_periods=1).max()
+            res_df[f'{world}_game_time_max_min'] = \
+                _df['game_time_max'].rolling(
+                window=len(_df), min_periods=1).min()
+            res_df[f'{world}_game_time_max_mean'] = \
+                _df['game_time_max'].rolling(
+                window=len(_df), min_periods=1).mean()
+            res_df[f'{world}_game_time_max_std'] = \
+                _df['game_time_max'].rolling(
+                window=len(_df), min_periods=1).std()
+            res_df[f'{world}_just_before_game_time_max'] = \
+                _df['game_time_max'].rolling(
+                window=len(_df), min_periods=1).apply(
+                lambda x: pd.Series(x).dropna().iloc[-1])
+
+            res_df[f'{world}_game_time_std_max'] = \
+                _df['game_time_std'].rolling(
+                window=len(_df), min_periods=1).max()
+            res_df[f'{world}_game_time_std_min'] = \
+                _df['game_time_std'].rolling(
+                window=len(_df), min_periods=1).min()
+            res_df[f'{world}_game_time_std_mean'] = \
+                _df['game_time_std'].rolling(
+                window=len(_df), min_periods=1).mean()
+            res_df[f'{world}_game_time_std_std'] = \
+                _df['game_time_std'].rolling(
+                window=len(_df), min_periods=1).std()
+            res_df[f'{world}_just_before_game_time_std'] = \
+                _df['game_time_std'].rolling(
+                window=len(_df), min_periods=1).apply(
+                lambda x: pd.Series(x).dropna().iloc[-1])
+
+            res_df[f'{world}_event_count_max_max'] = \
+                _df['event_count_max'].rolling(
+                window=len(_df), min_periods=1).max()
+            res_df[f'{world}_event_count_max_min'] = \
+                _df['event_count_max'].rolling(
+                window=len(_df), min_periods=1).min()
+            res_df[f'{world}_event_count_max_mean'] = \
+                _df['event_count_max'].rolling(
+                window=len(_df), min_periods=1).mean()
+            res_df[f'{world}_event_count_max_std'] = \
+                _df['event_count_max'].rolling(
+                window=len(_df), min_periods=1).std()
+            res_df[f'{world}_just_before_event_count_max'] = \
+                _df['event_count_max'].rolling(
+                window=len(_df), min_periods=1).apply(
+                lambda x: pd.Series(x).dropna().iloc[-1])
 
         if self.datatype == "test":
             res_df = pd.DataFrame([res_df.iloc[-1, :]])
+
         return res_df
