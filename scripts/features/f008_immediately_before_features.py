@@ -63,7 +63,7 @@ class immediatelyBeforeFeatures(Features):
             .reset_index(drop=True)
         grp_features_df = df.groupby(['installation_id', 'game_session']).agg(
             {
-                'timestamp': ['max'],
+                'timestamp': ['max', ],
                 'event_count': ['max'],
                 'event_code': {
                     'last': lambda x: x.iloc[-1]
@@ -71,7 +71,11 @@ class immediatelyBeforeFeatures(Features):
                 'game_time': {
                     'max': 'max',
                     'skew': 'skew',
-                    'kurt': lambda x: x.kurt()
+                    'kurt': lambda x: x.kurt(),
+#                    'diff_mean': lambda x: x.diff().mean(),
+#                    'diff_std': lambda x: x.diff().std()
+#                    'diff_skew': lambda x: x.diff().skew()
+#                    'diff_kurt': lambda x: x.diff().kurt()
                 },
                 'title': {
                     'LE': lambda x: self.activities_map[x.iloc[-1]],

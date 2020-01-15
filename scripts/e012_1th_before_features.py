@@ -179,7 +179,7 @@ def main():
         "dtFeatures": [dtFeatures, False],
         # "eventCodeRatioFeatures": [eventCodeRatioFeatures, False],
         # "eventIDRatioFeatures": [eventIDRatioFeatures, False],
-        # "immediatelyBeforeFeatures": [immediatelyBeforeFeatures, False],
+        "immediatelyBeforeFeatures": [immediatelyBeforeFeatures, True],
     }
 
     is_local = False
