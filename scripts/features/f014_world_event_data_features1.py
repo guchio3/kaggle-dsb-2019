@@ -35,30 +35,31 @@ class worldEventDataFeatures1(Features):
     def _calc_features(self, df):
         df['level'] = df['event_data'].apply(
             lambda x: self._extract_key_from_json(x, 'level'))
-        df['miss'] = df['event_data'].apply(
-            lambda x: self._extract_key_from_json(x, 'miss'))
+        df['misses'] = df['event_data'].apply(
+            lambda x: self._extract_key_from_json(x, 'misses'))
         df['round'] = df['event_data'].apply(
             lambda x: self._extract_key_from_json(x, 'round'))
 
         grp_df = df.groupby(['installation_id', 'game_session', 'world']).agg(
             {
+                'timestamp': ['max'],
                 'level': {
-                    'mean': lambda x: None if np.isnan(x).all() else x.mean(),
-                    'std': lambda x: None if np.isnan(x).all() else x.std(),
-                    'max': lambda x: None if np.isnan(x).all() else x.max(),
-                    'min': lambda x: None if np.isnan(x).all() else x.min(),
+                    'mean': lambda x: None if (x == None).all() else x.mean(),
+                    'std': lambda x: None if (x == None).all() else x.std(),
+                    'max': lambda x: None if (x == None).all() else x.max(),
+                    'min': lambda x: None if (x == None).all() else x.min(),
                 },
                 'round': {
-                    'mean': lambda x: None if np.isnan(x).all() else x.mean(),
-                    'std': lambda x: None if np.isnan(x).all() else x.std(),
-                    'max': lambda x: None if np.isnan(x).all() else x.max(),
-                    'min': lambda x: None if np.isnan(x).all() else x.min(),
+                    'mean': lambda x: None if (x == None).all() else x.mean(),
+                    'std': lambda x: None if (x == None).all() else x.std(),
+                    'max': lambda x: None if (x == None).all() else x.max(),
+                    'min': lambda x: None if (x == None).all() else x.min(),
                 },
                 'misses': {
-                    'mean': lambda x: None if np.isnan(x).all() else x.mean(),
-                    'std': lambda x: None if np.isnan(x).all() else x.std(),
-                    'max': lambda x: None if np.isnan(x).all() else x.max(),
-                    'min': lambda x: None if np.isnan(x).all() else x.min(),
+                    'mean': lambda x: None if (x == None).all() else x.mean(),
+                    'std': lambda x: None if (x == None).all() else x.std(),
+                    'max': lambda x: None if (x == None).all() else x.max(),
+                    'min': lambda x: None if (x == None).all() else x.min(),
                 },
             }
         )

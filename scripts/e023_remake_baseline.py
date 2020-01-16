@@ -177,8 +177,8 @@ def preprocess_dfs(use_features, is_local=False, logger=None, debug=True):
 
 
 def main():
-    train_df = pd.read_pickle('./mnt/inputs/origin/train.pkl.gz')
-    test_df = pd.read_csv('./mnt/inputs/origin/test.csv')
+    # train_df = pd.read_pickle('./mnt/inputs/origin/train.pkl.gz')
+    # test_df = pd.read_csv('./mnt/inputs/origin/test.csv')
 
     # ==============================
     # start processing
@@ -202,8 +202,8 @@ def main():
         "worldNumeriacalFeatures": [worldNumeriacalFeatures, False],
         "worldAssessmentNumeriacalFeatures": [worldAssessmentNumeriacalFeatures, False],
         "worldActivityNumeriacalFeatures": [worldActivityNumeriacalFeatures, False],
-        ### "worldGameNumeriacalFeatures": [worldGameNumeriacalFeatures, False], # error でたので一旦外す
-        "worldEventDataFeatures1": [worldEventDataFeatures1, False],
+        "worldGameNumeriacalFeatures": [worldGameNumeriacalFeatures, False], 
+        # "worldEventDataFeatures1": [worldEventDataFeatures1, False], # to debug! killer features!
         "worldNumeriacalFeatures2": [worldNumeriacalFeatures2, False],
         "currentSessionInfo": [currentSessionInfo, False],
         "sameWorldBaseFeatures": [sameWorldBaseFeatures, False]
@@ -232,49 +232,6 @@ def main():
     # remove , to avoid error of lgbm
     train_df.columns = [col.replace(',', '_') for col in train_df.columns]
     test_df.columns = [col.replace(',', '_') for col in test_df.columns]
-
-    # 特徴作成後、以下を実行
-    fill_cols = ['12 Monkeys',
-                 'Air Show',
-                 'All Star Sorting',
-                 'Balancing Act',
-                 'Bottle Filler (Activity)',
-                 'Bubble Bath',
-                 'Bug Measurer (Activity)',
-                 'Chicken Balancer (Activity)',
-                 'Chow Time',
-                 'Costume Box',
-                 'Crystal Caves - Level 1',
-                 'Crystal Caves - Level 2',
-                 'Crystal Caves - Level 3',
-                 'Crystals Rule',
-                 'Dino Dive',
-                 'Dino Drink',
-                 'Egg Dropper (Activity)',
-                 'Fireworks (Activity)',
-                 'Flower Waterer (Activity)',
-                 'Happy Camel',
-                 'Heavy, Heavier, Heaviest',
-                 'Honey Cake',
-                 'Leaf Leader',
-                 'Lifting Heavy Things',
-                 'Magma Peak - Level 1',
-                 'Magma Peak - Level 2',
-                 'Ordering Spheres',
-                 'Pan Balance',
-                 "Pirate's Tale",
-                 'Rulers',
-                 'Sandcastle Builder (Activity)',
-                 'Scrub-A-Dub',
-                 'Slop Problem',
-                 'Treasure Map',
-                 'Tree Top City - Level 1',
-                 'Tree Top City - Level 2',
-                 'Tree Top City - Level 3',
-                 'Watering Hole (Activity)',
-                 'Welcome to Lost Lagoon!', ]
-    train_df[fill_cols] = train_df[fill_cols].fillna(0)
-    test_df[fill_cols] = test_df[fill_cols].fillna(0)
 
     # train_params = {
     #     'learning_rate': 0.01,
