@@ -22,10 +22,13 @@ from features.f009_world_label_encoding_diff import \
 from features.f010_world_numerical_features import worldNumeriacalFeatures
 from features.f011_world_assessment_numerical_features import \
     worldAssessmentNumeriacalFeatures
-from features.f012_world_activity_numerical_features import worldActivityNumeriacalFeatures
-from features.f013_world_game_numerical_features import worldGameNumeriacalFeatures
+from features.f012_world_activity_numerical_features import \
+    worldActivityNumeriacalFeatures
+from features.f013_world_game_numerical_features import \
+    worldGameNumeriacalFeatures
 from features.f014_world_event_data_features1 import worldEventDataFeatures1
-from features.f015_world_assessment_numerical_features_revised import worldNumeriacalFeatures2
+from features.f015_world_assessment_numerical_features_revised import \
+    worldNumeriacalFeatures2
 from features.f016_current_session_info import currentSessionInfo
 from features.f017_same_world_base_features import sameWorldBaseFeatures
 # from features.f999_suga_yama_features_fixed import KernelBasics3
@@ -82,7 +85,7 @@ def add_features(use_features, org_train, org_test, train_labels,
     }
 
     # base feature
-    base_feat = KernelBasics3(train_labels, feat_params, logger)
+    base_feat = KernelBasics2(train_labels, feat_params, logger)
     feature_dir = './mnt/inputs/features'
     # feature_dir = os.path.join(os.path.dirname("__file__"), "../feature")
     feature_path = Path(feature_dir) / f"{datatype}" / f"{base_feat.name}.pkl"
@@ -181,29 +184,29 @@ def main():
     # start processing
     # ==============================
     use_feature = {
-        # "EventCount": [EventCount, False],  # class, is_overwrite
-        # "EventCount2": [EventCount2, False],  # class, is_overwrite
-        # "Worldcount": [Worldcount, False],
-        # "SessionTime": [SessionTime2, False],
+        "EventCount": [EventCount, False],  # class, is_overwrite
+        "EventCount2": [EventCount2, False],  # class, is_overwrite
+        "Worldcount": [Worldcount, False],
+        "SessionTime": [SessionTime2, False],
         # "AssessEventCount": [AssessEventCount, False],
-        # "EncodingTitles": [EncodingTitles, False],
-        ### "encodingTitleOrder": [encodingTitleOrder, False],
-        # "PrevAssessResult":[PrevAssessResult, True],
+        "EncodingTitles": [EncodingTitles, False],
+        # "encodingTitleOrder": [encodingTitleOrder, False],
+        # "PrevAssessResult": [PrevAssessResult, True],
         # "PrevAssessAcc": [PrevAssessAcc, True],
-        # "PrevAssessAccByTitle": [PrevAssessAccByTitle, False],
-        # "dtFeatures": [dtFeatures, False],
-        # "eventCodeRatioFeatures": [eventCodeRatioFeatures, False],
-        # "eventIDRatioFeatures": [eventIDRatioFeatures, False],
-        # "immediatelyBeforeFeatures": [immediatelyBeforeFeatures, False],
-        # "worldLabelEncodingDiffFeatures": [worldLabelEncodingDiffFeatures, False],
-        # "worldNumeriacalFeatures": [worldNumeriacalFeatures, False],
-        # "worldAssessmentNumeriacalFeatures": [worldAssessmentNumeriacalFeatures, False],
-        # "worldActivityNumeriacalFeatures": [worldActivityNumeriacalFeatures: False],
-        # "worldGameNumeriacalFeatures": [worldGameNumeriacalFeatures, False],
-        # "worldEventDataFeatures1": [worldEventDataFeatures1, False],
-        # "worldNumeriacalFeatures2": [worldNumeriacalFeatures2, False],
-        # "currentSessionInfo": [currentSessionInfo, False],
-        # "sameWorldBaseFeatures": [sameWorldBaseFeatures, False]
+        "PrevAssessAccByTitle": [PrevAssessAccByTitle, False],
+        "dtFeatures": [dtFeatures, False],
+        "eventCodeRatioFeatures": [eventCodeRatioFeatures, False],
+        "eventIDRatioFeatures": [eventIDRatioFeatures, False],
+        "immediatelyBeforeFeatures": [immediatelyBeforeFeatures, False],
+        "worldLabelEncodingDiffFeatures": [worldLabelEncodingDiffFeatures, False],
+        "worldNumeriacalFeatures": [worldNumeriacalFeatures, False],
+        "worldAssessmentNumeriacalFeatures": [worldAssessmentNumeriacalFeatures, False],
+        "worldActivityNumeriacalFeatures": [worldActivityNumeriacalFeatures, False],
+        "worldGameNumeriacalFeatures": [worldGameNumeriacalFeatures, False],
+        "worldEventDataFeatures1": [worldEventDataFeatures1, False],
+        "worldNumeriacalFeatures2": [worldNumeriacalFeatures2, False],
+        "currentSessionInfo": [currentSessionInfo, False],
+        "sameWorldBaseFeatures": [sameWorldBaseFeatures, False]
     }
 
     is_local = False
@@ -331,19 +334,19 @@ def main():
         'g_duration_min',
         'mean_g_duraation_std'
     ] + [
-            'accum_acc_gr_-99',
-            'accum_acc_gr_0',
-            'accum_acc_gr_1',
-            'accum_acc_gr_2',
-            'accum_acc_gr_3',
-            'prev_acc_gr_-99',
-            'prev_acc_gr_0',
-            'prev_acc_gr_1',
-            'prev_acc_gr_2',
-            'prev_acc_gr_3',
-            'prev_num_corrects',
-            'prev_num_incorrects',
-            ]
+        'accum_acc_gr_-99',
+        'accum_acc_gr_0',
+        'accum_acc_gr_1',
+        'accum_acc_gr_2',
+        'accum_acc_gr_3',
+        'prev_acc_gr_-99',
+        'prev_acc_gr_0',
+        'prev_acc_gr_1',
+        'prev_acc_gr_2',
+        'prev_acc_gr_3',
+        'prev_num_corrects',
+        'prev_num_incorrects',
+    ]
 
     no_use_cols = [
         "accuracy",

@@ -109,7 +109,7 @@ class KernelBasics2(Features):
         pv[cum_cols] = pv[cum_cols].shift(1)  # 直前までのplaytimeを取得する
 
         ins_id = df.installation_id.values[0]
-        print(ins_id)
+        # print(ins_id)
 
         # calc num corrects
         pv = pv.loc[pv.type == "Assessment"]
