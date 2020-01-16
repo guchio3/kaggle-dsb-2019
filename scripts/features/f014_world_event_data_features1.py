@@ -1,7 +1,8 @@
 import gc
+import json
 import os
-from io import StringIO
 
+import numpy as np
 import pandas as pd
 
 from features.f000_feature_base import Features
@@ -32,21 +33,37 @@ class worldEventDataFeatures1(Features):
         return ret
 
     def _calc_features(self, df):
+        df['level'] = df['event_data'].apply(
+            lambda x: self._extract_key_from_json(x, 'level'))
+        df['miss'] = df['event_data'].apply(
+            lambda x: self._extract_key_from_json(x, 'miss'))
+        df['round'] = df['event_data'].apply(
+            lambda x: self._extract_key_from_json(x, 'round'))
+
         grp_df = df.groupby(['installation_id', 'game_session', 'world']).agg(
             {
-                'timestamp': ['max', ],
-                'num_correct': ['sum'],
-                'num_incorrect': ['sum'],
-                'game_time': ['max', 'std'],
-                'event_count': ['max'],
+                'level': {
+                    'mean': lambda x: None if np.isnan(x).all() else x.mean(),
+                    'std': lambda x: None if np.isnan(x).all() else x.std(),
+                    'max': lambda x: None if np.isnan(x).all() else x.max(),
+                    'min': lambda x: None if np.isnan(x).all() else x.min(),
+                },
+                'round': {
+                    'mean': lambda x: None if np.isnan(x).all() else x.mean(),
+                    'std': lambda x: None if np.isnan(x).all() else x.std(),
+                    'max': lambda x: None if np.isnan(x).all() else x.max(),
+                    'min': lambda x: None if np.isnan(x).all() else x.min(),
+                },
+                'misses': {
+                    'mean': lambda x: None if np.isnan(x).all() else x.mean(),
+                    'std': lambda x: None if np.isnan(x).all() else x.std(),
+                    'max': lambda x: None if np.isnan(x).all() else x.max(),
+                    'min': lambda x: None if np.isnan(x).all() else x.min(),
+                },
             }
         )
-
         grp_df.columns = [
             f'{col[0]}_{col[1]}' for col in grp_df.columns]
-
-        grp_df['accuracy'] = grp_df['num_correct_sum'] / \
-            (grp_df['num_correct_sum'] + grp_df['num_incorrect_sum'])
 
         grp_df = grp_df.sort_values('timestamp_max')
         grp_df = grp_df.drop('timestamp_max', axis=1)
@@ -55,99 +72,43 @@ class worldEventDataFeatures1(Features):
 
         res_df = grp_df[['installation_id', 'game_session']]
 
-        for world in ['MAGMAPEAK', 'CRYSTALCAVES', 'TREETOPCITY', 'NONE']:
-            _df = grp_df.copy()
-            _df.loc[_df.world != world, 'title_enc'] = None
-
-            res_df[f'{world}_accuracy_max'] = \
-                _df['accuracy'].rolling(
-                window=len(_df), min_periods=1).max()
-            res_df[f'{world}_accuracy_min'] = \
-                _df['accuracy'].rolling(
-                window=len(_df), min_periods=1).min()
-            res_df[f'{world}_accuracy_mean'] = \
-                _df['accuracy'].rolling(
-                window=len(_df), min_periods=1).mean()
-            res_df[f'{world}_accuracy_std'] = \
-                _df['accuracy'].rolling(
-                window=len(_df), min_periods=1).std()
-            res_df[f'{world}_just_before_accuracy'] = \
-                _df['accuracy'].rolling(
-                window=len(_df), min_periods=1).apply(
-                lambda x: pd.Series(x).dropna().iloc[-1])
-
-            res_df[f'{world}_game_time_max_max'] = \
-                _df['game_time_max'].rolling(
-                window=len(_df), min_periods=1).max()
-            res_df[f'{world}_game_time_max_min'] = \
-                _df['game_time_max'].rolling(
-                window=len(_df), min_periods=1).min()
-            res_df[f'{world}_game_time_max_mean'] = \
-                _df['game_time_max'].rolling(
-                window=len(_df), min_periods=1).mean()
-            res_df[f'{world}_game_time_max_std'] = \
-                _df['game_time_max'].rolling(
-                window=len(_df), min_periods=1).std()
-            res_df[f'{world}_just_before_game_time_max'] = \
-                _df['game_time_max'].rolling(
-                window=len(_df), min_periods=1).apply(
-                lambda x: pd.Series(x).dropna().iloc[-1])
-
-            res_df[f'{world}_game_time_std_max'] = \
-                _df['game_time_std'].rolling(
-                window=len(_df), min_periods=1).max()
-            res_df[f'{world}_game_time_std_min'] = \
-                _df['game_time_std'].rolling(
-                window=len(_df), min_periods=1).min()
-            res_df[f'{world}_game_time_std_mean'] = \
-                _df['game_time_std'].rolling(
-                window=len(_df), min_periods=1).mean()
-            res_df[f'{world}_game_time_std_std'] = \
-                _df['game_time_std'].rolling(
-                window=len(_df), min_periods=1).std()
-            res_df[f'{world}_just_before_game_time_std'] = \
-                _df['game_time_std'].rolling(
-                window=len(_df), min_periods=1).apply(
-                lambda x: pd.Series(x).dropna().iloc[-1])
-
-            res_df[f'{world}_event_count_max_max'] = \
-                _df['event_count_max'].rolling(
-                window=len(_df), min_periods=1).max()
-            res_df[f'{world}_event_count_max_min'] = \
-                _df['event_count_max'].rolling(
-                window=len(_df), min_periods=1).min()
-            res_df[f'{world}_event_count_max_mean'] = \
-                _df['event_count_max'].rolling(
-                window=len(_df), min_periods=1).mean()
-            res_df[f'{world}_event_count_max_std'] = \
-                _df['event_count_max'].rolling(
-                window=len(_df), min_periods=1).std()
-            res_df[f'{world}_just_before_event_count_max'] = \
-                _df['event_count_max'].rolling(
-                window=len(_df), min_periods=1).apply(
-                lambda x: pd.Series(x).dropna().iloc[-1])
-
         worlds = ['MAGMAPEAK', 'CRYSTALCAVES', 'TREETOPCITY', 'NONE']
-        res_df['world_accracy_mean_mean'] = res_df[[
-            f'{world}_accuracy_mean' for world in worlds]].mean(axis=1).values
-        res_df['world_accracy_mean_std'] = res_df[[
-            f'{world}_accuracy_mean' for world in worlds]].std(axis=1).values
-        res_df['world_accracy_max_max'] = res_df[[
-            f'{world}_accuracy_max' for world in worlds]].max(axis=1).values
-        res_df['world_accracy_max_mean'] = res_df[[
-            f'{world}_accuracy_max' for world in worlds]].mean(axis=1).values
-        res_df['world_accracy_max_std'] = res_df[[
-            f'{world}_accuracy_max' for world in worlds]].std(axis=1).values
-        res_df['world_accracy_min_min'] = res_df[[
-            f'{world}_accuracy_max' for world in worlds]].min(axis=1).values
-        res_df['world_accracy_min_mean'] = res_df[[
-            f'{world}_accuracy_max' for world in worlds]].mean(axis=1).values
-        res_df['world_accracy_min_std'] = res_df[[
-            f'{world}_accuracy_max' for world in worlds]].std(axis=1).values
-        res_df['world_accracy_std_mean'] = res_df[[
-            f'{world}_accuracy_std' for world in worlds]].mean(axis=1).values
-        res_df['world_accracy_std_std'] = res_df[[
-            f'{world}_accuracy_std' for world in worlds]].std(axis=1).values
+        for world in worlds:
+            _df = grp_df.copy()
+            for key in ['level', 'round', 'misses']:
+                for stat in ['mean', 'std', 'max', 'min']:
+                    key_stat = f'{key}_{stat}'
+                    _df.loc[_df.world != world, key_stat] = None
+
+                    res_df[f'{world}_{key_stat}_max'] = \
+                        _df[key_stat].rolling(
+                        window=len(_df), min_periods=1).max()
+                    res_df[f'{world}_{key_stat}_min'] = \
+                        _df[key_stat].rolling(
+                        window=len(_df), min_periods=1).min()
+                    res_df[f'{world}_{key_stat}_mean'] = \
+                        _df[key_stat].rolling(
+                        window=len(_df), min_periods=1).mean()
+                    res_df[f'{world}_{key_stat}_std'] = \
+                        _df[key_stat].rolling(
+                        window=len(_df), min_periods=1).std()
+                    res_df[f'{world}_just_before_{key_stat}'] = \
+                        _df[key_stat].rolling(
+                        window=len(_df), min_periods=1).apply(
+                        lambda x: pd.Series(x).dropna().iloc[-1])
+
+        for key in ['level', 'round', 'misses']:
+            for stat in ['mean', 'std', 'max', 'min']:
+                key_stat = f'{key}_{stat}'
+
+                res_df[f'world_{key_stat}_mean'] = res_df[[
+                    f'{world}_{key_stat}_mean' for world in worlds]].mean(axis=1).values
+                res_df[f'world_{key_stat}_std'] = res_df[[
+                    f'{world}_{key_stat}_std' for world in worlds]].std(axis=1).values
+                res_df[f'world_{key_stat}_max'] = res_df[[
+                    f'{world}_{key_stat}_max' for world in worlds]].max(axis=1).values
+                res_df[f'world_{key_stat}_min'] = res_df[[
+                    f'{world}_{key_stat}_max' for world in worlds]].max(axis=1).values
 
         if self.datatype == "test":
             res_df = pd.DataFrame([res_df.iloc[-1, :]])
@@ -158,3 +119,7 @@ class worldEventDataFeatures1(Features):
             ]
 
         return res_df
+
+    def _extract_key_from_json(self, json_str, key):
+        json_dict = json.loads(json_str)
+        return json_dict[key] if key in json_dict else None

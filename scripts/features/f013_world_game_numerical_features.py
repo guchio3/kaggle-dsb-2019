@@ -77,7 +77,7 @@ class worldGameNumeriacalFeatures(Features):
 
         for world in ['MAGMAPEAK', 'CRYSTALCAVES', 'TREETOPCITY', 'NONE']:
             _df = grp_df.copy()
-            _df.loc[_df.world != world, 'title_enc'] = None
+            _df.loc[_df.world != world, 'accuracy'] = None
 
             res_df[f'{world}_accuracy_max'] = \
                 _df['accuracy'].rolling(
@@ -108,11 +108,11 @@ class worldGameNumeriacalFeatures(Features):
         res_df['world_accracy_max_std'] = res_df[[
             f'{world}_accuracy_max' for world in worlds]].std(axis=1).values
         res_df['world_accracy_min_min'] = res_df[[
-            f'{world}_accuracy_max' for world in worlds]].min(axis=1).values
+            f'{world}_accuracy_min' for world in worlds]].min(axis=1).values
         res_df['world_accracy_min_mean'] = res_df[[
-            f'{world}_accuracy_max' for world in worlds]].mean(axis=1).values
+            f'{world}_accuracy_min' for world in worlds]].mean(axis=1).values
         res_df['world_accracy_min_std'] = res_df[[
-            f'{world}_accuracy_max' for world in worlds]].std(axis=1).values
+            f'{world}_accuracy_min' for world in worlds]].std(axis=1).values
         res_df['world_accracy_std_mean'] = res_df[[
             f'{world}_accuracy_std' for world in worlds]].mean(axis=1).values
         res_df['world_accracy_std_std'] = res_df[[

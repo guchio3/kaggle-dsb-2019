@@ -87,7 +87,10 @@ class worldNumeriacalFeatures(Features):
 
         for world in ['MAGMAPEAK', 'CRYSTALCAVES', 'TREETOPCITY', 'NONE']:
             _df = grp_df.copy()
-            _df.loc[_df.world != world, 'title_enc'] = None
+            _df.loc[_df.world != world, 'accuracy'] = None
+            _df.loc[_df.world != world, 'game_time_max'] = None
+            _df.loc[_df.world != world, 'game_time_std'] = None
+            _df.loc[_df.world != world, 'event_count_max'] = None
 
             res_df[f'{world}_accuracy_max'] = \
                 _df['accuracy'].rolling(
