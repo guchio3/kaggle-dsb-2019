@@ -32,7 +32,7 @@ from features.f015_world_assessment_numerical_features_revised import \
 from features.f016_current_session_info import currentSessionInfo
 from features.f017_same_world_base_features import sameWorldBaseFeatures
 # from features.f999_suga_yama_features_fixed import KernelBasics3
-from features.f100_suga_yama_features_fixed import KernelBasics2
+from features.f100_suga_yama_features_fixed import KernelBasics3
 # from guchio_utils import guchioValidation
 from yamakawa_san_utils import (OptimizedRounder, Validation, base_path,
                                 log_output, memory_reducer, pickle_load, qwk,
@@ -85,7 +85,7 @@ def add_features(use_features, org_train, org_test, train_labels,
     }
 
     # base feature
-    base_feat = KernelBasics2(train_labels, feat_params, logger)
+    base_feat = KernelBasics3(train_labels, feat_params, logger)
     feature_dir = './mnt/inputs/features'
     # feature_dir = os.path.join(os.path.dirname("__file__"), "../feature")
     feature_path = Path(feature_dir) / f"{datatype}" / f"{base_feat.name}.pkl"
@@ -202,7 +202,7 @@ def main():
         "worldNumeriacalFeatures": [worldNumeriacalFeatures, False],
         "worldAssessmentNumeriacalFeatures": [worldAssessmentNumeriacalFeatures, False],
         "worldActivityNumeriacalFeatures": [worldActivityNumeriacalFeatures, False],
-        "worldGameNumeriacalFeatures": [worldGameNumeriacalFeatures, False],
+        ### "worldGameNumeriacalFeatures": [worldGameNumeriacalFeatures, False], # error でたので一旦外す
         "worldEventDataFeatures1": [worldEventDataFeatures1, False],
         "worldNumeriacalFeatures2": [worldNumeriacalFeatures2, False],
         "currentSessionInfo": [currentSessionInfo, False],
@@ -333,19 +333,6 @@ def main():
         'accum_acc_gr_3',
         'g_duration_min',
         'mean_g_duraation_std'
-    ] + [
-        'accum_acc_gr_-99',
-        'accum_acc_gr_0',
-        'accum_acc_gr_1',
-        'accum_acc_gr_2',
-        'accum_acc_gr_3',
-        'prev_acc_gr_-99',
-        'prev_acc_gr_0',
-        'prev_acc_gr_1',
-        'prev_acc_gr_2',
-        'prev_acc_gr_3',
-        'prev_num_corrects',
-        'prev_num_incorrects',
     ]
 
     no_use_cols = [

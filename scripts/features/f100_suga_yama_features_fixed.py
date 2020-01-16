@@ -8,7 +8,7 @@ from features.f000_feature_base import Features
 from yamakawa_san_utils import applyParallel, groupings
 
 
-class KernelBasics2(Features):
+class KernelBasics3(Features):
     """kernel features revised
     """
 
@@ -43,18 +43,21 @@ class KernelBasics2(Features):
                 self.train_labels.installation_id.unique())]
         else:
             df = org_test
+
         c_ass_idx = (((df.event_code == 4100)
                       & (df.title != "Bird Measurer (Assessment)")
                       & (df["event_data"].str.contains("true"))) |
                      ((df.event_code == 4110)
                       & (df.title == "Bird Measurer (Assessment)")
                       & (df["event_data"].str.contains("true"))) & (df["type"] == "Assessment"))
+
         inc_ass_idx = (((df.event_code == 4100)
                         & (df.title != "Bird Measurer (Assessment)")
                         & (df["event_data"].str.contains("false"))) |
                        ((df.event_code == 4110)
                         & (df.title == "Bird Measurer (Assessment)")
                         & (df["event_data"].str.contains("false"))) & (df["type"] == "Assessment"))
+
         df.loc[c_ass_idx, 'num_correct'] = 1
         df.loc[inc_ass_idx, 'num_incorrect'] = 1
 
@@ -66,10 +69,12 @@ class KernelBasics2(Features):
                                                              "type"
                                                              ]]
 
-#         ret[ret_col] = ret[ret_col].fillna(0).astype("int32")
-
         use_cols = [c for c in list(ret.columns) if "Assessment" not in c]
-        ret = ret[use_cols]
+        del ret["accum_acc_gr_-99"], ret["prev_acc_gr_-99"]
+
+        fill_cols = [c for c in list(ret.columns) if c not in ["cum_accuracy", "cum_accuracy", "prev_acc_gr_0", "prev_acc_gr_1",
+                                                               "prev_acc_gr_2", "prev_acc_gr_3", "prev_num_corrects", "prev_num_incorrects"]]
+        ret[fill_cols] = ret[fill_cols].fillna(0)
         self.format_and_save_feats(ret)
 
         return ret
@@ -87,11 +92,10 @@ class KernelBasics2(Features):
         # sessionごとのplaytimeを算出
         df["gs_max_time"] = df.groupby("game_session")["timestamp"].transform(
             "max")  # gs_max_timeでsortする必要がある
-
         pv = pd.pivot_table(df, index=["installation_id", "gs_max_time", "game_session", "type"],
                             columns="title",
                             values="game_time",
-                            aggfunc="max")  # .fillna(0)
+                            aggfunc="max").fillna(0)
 
         # 時刻順に並ぶことを保証する
         pv.sort_values("gs_max_time", ascending=True, inplace=True)
@@ -105,12 +109,10 @@ class KernelBasics2(Features):
                 "game_session",
                 "gs_max_time"]]
 #         pv[cum_cols] = (pv[cum_cols].cumsum() // 1000).astype("int32")
-        pv[cum_cols] = (pv[cum_cols].cumsum())
+        pv[cum_cols] = (pv[cum_cols].cumsum()).fillna(0)
         pv[cum_cols] = pv[cum_cols].shift(1)  # 直前までのplaytimeを取得する
 
         ins_id = df.installation_id.values[0]
-        # print(ins_id)
-
         # calc num corrects
         pv = pv.loc[pv.type == "Assessment"]
         num_c_df = df.loc[(df.type == "Assessment") &
@@ -142,6 +144,7 @@ class KernelBasics2(Features):
         gc.collect()
 
         pv = self.get_acc_group(pv)
+
         pv = pv.sort_values("gs_max_time").reset_index(drop=True)
         del pv["gs_max_time"]
 
@@ -183,7 +186,41 @@ class KernelBasics2(Features):
             if col in [-99, 0, 1, 2, 3]:
                 acc_columns[col] = "prev_acc_gr_" + str(col)
                 acc_pv[f"accum_acc_gr_{col}"] = acc_pv[col].cumsum()
+
         acc_pv.rename(columns=acc_columns, inplace=True)
         del acc_pv["gs_max_time"]
         pv = pd.merge(pv, acc_pv, on="game_session", how="left")
+
+        return pv
+
+    def test_calc_feature(self, org_train, org_test):
+        if self.datatype == "train":
+            df = org_train
+            df = df.loc[df.installation_id.isin(
+                self.train_labels.installation_id.unique())]
+        else:
+            df = org_test
+#             df = org_train
+#             df = df.loc[df.installation_id.isin(self.train_labels.installation_id.unique())]
+
+        c_ass_idx = (((df.event_code == 4100)
+                      & (df.title != "Bird Measurer (Assessment)")
+                      & (df["event_data"].str.contains("true"))) |
+                     ((df.event_code == 4110)
+                      & (df.title == "Bird Measurer (Assessment)")
+                      & (df["event_data"].str.contains("true"))) & (df["type"] == "Assessment"))
+
+        inc_ass_idx = (((df.event_code == 4100)
+                        & (df.title != "Bird Measurer (Assessment)")
+                        & (df["event_data"].str.contains("false"))) |
+                       ((df.event_code == 4110)
+                        & (df.title == "Bird Measurer (Assessment)")
+                        & (df["event_data"].str.contains("false"))) & (df["type"] == "Assessment"))
+
+        df.loc[c_ass_idx, 'num_correct'] = 1
+        df.loc[inc_ass_idx, 'num_incorrect'] = 1
+
+        ins_df = df.loc[df.installation_id == "01a44906"]
+        pv = self.ins_id_sessions(ins_df)
+
         return pv
