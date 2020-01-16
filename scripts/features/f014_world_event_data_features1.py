@@ -15,13 +15,6 @@ class worldEventDataFeatures1(Features):
         super().__init__(params, logger=logger)
         self.train_labels = train_labels
 
-    def get_encoder(self, org_train, org_test):
-        self.all_event_codes = set(org_train["event_code"].unique()).union(
-            org_test["event_code"].unique())
-        self.inverse_activities_map = self.media_sequence.title.to_dict()
-        self.activities_map = {v: k for k,
-                               v in self.inverse_activities_map.items()}
-
     def calc_feature(self, org_train, org_test):
         if self.datatype == "train":
             df = org_train
@@ -46,12 +39,6 @@ class worldEventDataFeatures1(Features):
                 'num_incorrect': ['sum'],
                 'game_time': ['max', 'std'],
                 'event_count': ['max'],
-                #                 'title': {
-                #                     'Clip_num': lambda x: (x == "Clip").sum(),
-                #                     'Activity_num': lambda x: (x == "Activity").sum(),
-                #                     'Game_num': lambda x: (x == "Game").sum(),
-                #                     'Assessment_num': lambda x: (x == "Assessment").sum(),
-                #                     }
             }
         )
 
@@ -164,5 +151,10 @@ class worldEventDataFeatures1(Features):
 
         if self.datatype == "test":
             res_df = pd.DataFrame([res_df.iloc[-1, :]])
+        else:
+            res_df = res_df[
+                res_df.game_session
+                .isin(self.train_labels.game_session)
+            ]
 
         return res_df
