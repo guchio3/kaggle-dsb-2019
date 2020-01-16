@@ -116,4 +116,11 @@ Chest Sorter (Assessment)	Assessment
 
         if self.datatype == "test":
             res_df = pd.DataFrame([res_df.iloc[-1, :]])
+        else:
+            # to save memory
+            res_df = res_df[
+                res_df.game_session
+                .isin(self.train_labels.game_session)
+            ]
+
         return res_df

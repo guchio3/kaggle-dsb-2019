@@ -120,6 +120,12 @@ class worldGameNumeriacalFeatures(Features):
 
         if self.datatype == "test":
             res_df = pd.DataFrame([res_df.iloc[-1, :]])
+        else:
+            # to save memory
+            res_df = res_df[
+                res_df.game_session
+                .isin(self.train_labels.game_session)
+            ]
 
         res_df = res_df\
             .set_index(['installation_id', 'game_session'])\
