@@ -82,7 +82,10 @@ class KernelBasics3(Features):
         ret[fill_cols] = ret[fill_cols].fillna(0)
 
         if self.datatype == "train":
-            ret = ret.merge(self.train_labels[['installation_id', 'game_session', 'accuracy_group', 'accuracy']], on=['installation_id','game_session'])
+            ret = pd.merge(
+                ret, self.train_labels, how="inner", on=[
+                    "installation_id", "game_session"])
+
         self.format_and_save_feats(ret)
 
         return ret
@@ -230,6 +233,7 @@ class KernelBasics3(Features):
         pv = self.ins_id_sessions(ins_df)
 
         return pv
+
 
 # class KernelBasics3(Features):
 #     """kernel features revised

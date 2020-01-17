@@ -11,7 +11,7 @@ from yamakawa_san_utils import applyParallel
 FEATURE_ID = os.path.basename(__file__).split('_')[0]
 
 
-class worldEventDataFeatures1(Features):
+class worldEventDataFeaturesRolling5(Features):
     def __init__(self, train_labels, params, logger=None):
         super().__init__(params, logger=logger)
         self.train_labels = train_labels
@@ -73,6 +73,7 @@ class worldEventDataFeatures1(Features):
 
         res_df = grp_df[['installation_id', 'game_session']]
 
+        ROLLING = 5
         worlds = ['MAGMAPEAK', 'CRYSTALCAVES', 'TREETOPCITY', 'NONE']
         for world in worlds:
             _df = grp_df.copy()
@@ -83,19 +84,19 @@ class worldEventDataFeatures1(Features):
 
                     res_df[f'{world}_{key_stat}_max'] = \
                         _df[key_stat].rolling(
-                        window=len(_df), min_periods=1).max()
+                        window=len(ROLLING), min_periods=1).max()
                     res_df[f'{world}_{key_stat}_min'] = \
                         _df[key_stat].rolling(
-                        window=len(_df), min_periods=1).min()
+                        window=len(ROLLING), min_periods=1).min()
                     res_df[f'{world}_{key_stat}_mean'] = \
                         _df[key_stat].rolling(
-                        window=len(_df), min_periods=1).mean()
+                        window=len(ROLLING), min_periods=1).mean()
                     res_df[f'{world}_{key_stat}_std'] = \
                         _df[key_stat].rolling(
-                        window=len(_df), min_periods=1).std()
+                        window=len(ROLLING), min_periods=1).std()
                     res_df[f'{world}_just_before_{key_stat}'] = \
                         _df[key_stat].rolling(
-                        window=len(_df), min_periods=1).apply(
+                        window=len(ROLLING), min_periods=1).apply(
                         lambda x: pd.Series(x).dropna().iloc[-1])
 
         for key in ['level', 'round', 'misses']:

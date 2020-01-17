@@ -31,6 +31,7 @@ from features.f015_world_assessment_numerical_features_revised import \
     worldNumeriacalFeatures2
 from features.f016_current_session_info import currentSessionInfo
 from features.f017_same_world_base_features import sameWorldBaseFeatures
+from features.f018_world_event_data_features_rolling_5 import worldEventDataFeaturesRolling5
 # from features.f999_suga_yama_features_fixed import KernelBasics3
 from features.f100_suga_yama_features_fixed import KernelBasics3
 # from guchio_utils import guchioValidation
@@ -194,19 +195,20 @@ def main():
         # "PrevAssessResult": [PrevAssessResult, True],
         # "PrevAssessAcc": [PrevAssessAcc, True],
         "PrevAssessAccByTitle": [PrevAssessAccByTitle, False],
-        "dtFeatures": [dtFeatures, False],
-        "eventCodeRatioFeatures": [eventCodeRatioFeatures, False],
-        "eventIDRatioFeatures": [eventIDRatioFeatures, False],
+        # "dtFeatures": [dtFeatures, False],
+        # "eventCodeRatioFeatures": [eventCodeRatioFeatures, False],
+        # "eventIDRatioFeatures": [eventIDRatioFeatures, False],
         "immediatelyBeforeFeatures": [immediatelyBeforeFeatures, False],
-        "worldLabelEncodingDiffFeatures": [worldLabelEncodingDiffFeatures, False],
-        "worldNumeriacalFeatures": [worldNumeriacalFeatures, False],
-        "worldAssessmentNumeriacalFeatures": [worldAssessmentNumeriacalFeatures, False],
-        "worldActivityNumeriacalFeatures": [worldActivityNumeriacalFeatures, False],
-        "worldGameNumeriacalFeatures": [worldGameNumeriacalFeatures, False], 
+        # "worldLabelEncodingDiffFeatures": [worldLabelEncodingDiffFeatures, False],
+        # "worldNumeriacalFeatures": [worldNumeriacalFeatures, False],
+        # "worldAssessmentNumeriacalFeatures": [worldAssessmentNumeriacalFeatures, False],
+        # "worldActivityNumeriacalFeatures": [worldActivityNumeriacalFeatures, False],
+        "worldGameNumeriacalFeatures": [worldGameNumeriacalFeatures, False],
         # "worldEventDataFeatures1": [worldEventDataFeatures1, False], # to debug! killer features!
-        "worldNumeriacalFeatures2": [worldNumeriacalFeatures2, False],
-        "currentSessionInfo": [currentSessionInfo, False],
-        "sameWorldBaseFeatures": [sameWorldBaseFeatures, False]
+        "worldEventDataFeaturesRolling5": [worldEventDataFeaturesRolling5, False],
+        # "worldNumeriacalFeatures2": [worldNumeriacalFeatures2, False],
+        # "currentSessionInfo": [currentSessionInfo, False],
+        # "sameWorldBaseFeatures": [sameWorldBaseFeatures, False],
     }
 
     is_local = False
@@ -347,7 +349,7 @@ def main():
         = v.do_valid_kfold(model_conf)
 
     optR = OptimizedRounder()
-    optR.fit(oof, train_df['accuracy_group'])
+    optR.fit(oof, train_df['accuracy_group'], [[1.0, 1.5, 2.9]])
     coefficients = optR.coefficients()
 
     opt_preds = optR.predict(oof, coefficients)
