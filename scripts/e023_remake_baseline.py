@@ -205,7 +205,7 @@ def main():
         # "worldActivityNumeriacalFeatures": [worldActivityNumeriacalFeatures, False],
         "worldGameNumeriacalFeatures": [worldGameNumeriacalFeatures, False],
         # "worldEventDataFeatures1": [worldEventDataFeatures1, False], # to debug! killer features!
-        "worldEventDataFeaturesRolling5": [worldEventDataFeaturesRolling5, False],
+        # "worldEventDataFeaturesRolling5": [worldEventDataFeaturesRolling5, False],
         # "worldNumeriacalFeatures2": [worldNumeriacalFeatures2, False],
         # "currentSessionInfo": [currentSessionInfo, False],
         # "sameWorldBaseFeatures": [sameWorldBaseFeatures, False],
