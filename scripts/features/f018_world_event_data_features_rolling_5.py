@@ -99,18 +99,18 @@ class worldEventDataFeaturesRolling5(Features):
                         window=ROLLING, min_periods=1).apply(
                         lambda x: pd.Series(x).dropna().iloc[-1])
 
-        for key in ['level', 'round', 'misses']:
-            for stat in ['mean', 'std', 'max', 'min']:
-                key_stat = f'{key}_{stat}'
-
-                res_df[f'world_{key_stat}_mean'] = res_df[[
-                    f'{world}_{key_stat}_mean' for world in worlds]].mean(axis=1).values
-                res_df[f'world_{key_stat}_std'] = res_df[[
-                    f'{world}_{key_stat}_std' for world in worlds]].std(axis=1).values
-                res_df[f'world_{key_stat}_max'] = res_df[[
-                    f'{world}_{key_stat}_max' for world in worlds]].max(axis=1).values
-                res_df[f'world_{key_stat}_min'] = res_df[[
-                    f'{world}_{key_stat}_max' for world in worlds]].max(axis=1).values
+#         for key in ['level', 'round', 'misses']:
+#             for stat in ['mean', 'std', 'max', 'min']:
+#                 key_stat = f'{key}_{stat}'
+# 
+#                 res_df[f'world_{key_stat}_mean'] = res_df[[
+#                     f'{world}_{key_stat}_mean' for world in worlds]].mean(axis=1).values
+#                 res_df[f'world_{key_stat}_std'] = res_df[[
+#                     f'{world}_{key_stat}_std' for world in worlds]].std(axis=1).values
+#                 res_df[f'world_{key_stat}_max'] = res_df[[
+#                     f'{world}_{key_stat}_max' for world in worlds]].max(axis=1).values
+#                 res_df[f'world_{key_stat}_min'] = res_df[[
+#                     f'{world}_{key_stat}_max' for world in worlds]].min(axis=1).values
 
         if self.datatype == "test":
             res_df = pd.DataFrame([res_df.iloc[-1, :]])

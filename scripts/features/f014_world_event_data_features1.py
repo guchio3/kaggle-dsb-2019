@@ -109,7 +109,7 @@ class worldEventDataFeatures1(Features):
                 res_df[f'world_{key_stat}_max'] = res_df[[
                     f'{world}_{key_stat}_max' for world in worlds]].max(axis=1).values
                 res_df[f'world_{key_stat}_min'] = res_df[[
-                    f'{world}_{key_stat}_max' for world in worlds]].max(axis=1).values
+                    f'{world}_{key_stat}_max' for world in worlds]].min(axis=1).values
 
         if self.datatype == "test":
             res_df = pd.DataFrame([res_df.iloc[-1, :]])
