@@ -1,4 +1,5 @@
 import gc
+import json
 import re
 
 import numpy as np
@@ -744,3 +745,300 @@ class PrevAssessAccByTitle(Features):
             pv = pd.DataFrame([pv.iloc[-1, :]])
 
         return pv
+
+
+class PrevAssessResult(Features):
+    """kernel features revised
+    """
+
+    def __init__(self, train_labels, params, logger=None):
+        super().__init__(params, logger=logger)
+        self.train_labels = train_labels
+
+    def calc_feature(self, org_train, org_test):
+        if self.datatype == "train":
+            df = org_train
+            assess_user = df.loc[df.type ==
+                                 "Assessment"].installation_id.unique()
+            df = df.loc[df.installation_id.isin(assess_user)]
+        else:
+            # 直前までのnum_correct/incorrectを取得する
+            org_test.loc[(org_test.event_code.isin([4100, 4110])) & (
+                org_test["event_data"].str.contains("true")), 'num_correct'] = 1
+            org_test.loc[(org_test.event_code.isin([4100, 4110])) & (
+                org_test["event_data"].str.contains("false")), 'num_incorrect'] = 1
+            df = org_test
+
+        ret = applyParallel(
+            df.groupby("installation_id"),
+            self.ins_id_sessions)
+        ret_col = [c for c in list(ret.columns) if c not in ["accuracy", "accuracy_group", "cum_accuracy",
+                                                             "game_session", "installation_id", "title",
+                                                             "type"
+                                                             ]]
+        ret[ret_col] = ret[ret_col].fillna(0).astype("int32")
+#         self.format_and_save_feats(ret)
+
+        use_cols = [c for c in list(ret.columns) if c not in ["accuracy", "accuracy_group", "cum_accuracy", "title",
+                                                              "type", "event_code", "gs_max_time"
+                                                              ]]
+
+        self.format_and_save_feats(ret[use_cols])
+
+        return ret[use_cols]
+
+    def ins_id_sessions(self, df):
+        """session当該session直前までのactivityを示す
+        Args:
+            df: df grouped by installation_id
+        """
+        # 単純なactivity count
+        df["gs_max_time"] = df.groupby("game_session")["timestamp"].transform(
+            "max")  # gs_max_timeでsortする必要がある
+        pv = pd.pivot_table(df, index=["installation_id", "gs_max_time", "game_session", "type"],
+                            columns="title",
+                            values="timestamp",
+                            aggfunc="count").fillna(0)
+
+        assess_col = [c for c in list(pv.columns) if "Assessment" in c]
+        pv = pv[assess_col]
+        pv.reset_index(inplace=True)
+
+        rename_dict = {}
+        new_cols = []
+
+        cnt_pref = "assess_cnt_"
+        for c in assess_col:
+            rename_dict[c] = cnt_pref + str(c)
+
+        pv = pv.loc[pv.type == "Assessment"].reset_index(drop=True)
+        pv.sort_values("gs_max_time", ascending=True, inplace=True)
+        pv.reset_index(inplace=True, drop=True)
+        pv[assess_col] = pv[assess_col].shift(1).fillna(0)
+        pv.rename(columns=rename_dict, inplace=True)
+
+        for c in assess_col:
+            pv["accum" + cnt_pref + str(c)] = pv[cnt_pref + str(c)].cumsum()
+
+        del pv["gs_max_time"], pv["type"]
+
+        return pv
+
+
+def assess_history(gr_df):
+    gr_df = gr_df.sort_values("gs_max_time", ascending=True)
+
+    gr_df["as_acc_c_num"] = gr_df["num_correct"].cumsum()
+    gr_df["as_acc_inc_num"] = gr_df["num_incorrect"].cumsum()
+    gr_df["as_prev_acc"] = gr_df["num_correct"] / \
+        (gr_df["num_correct"] + gr_df["num_incorrect"])
+    gr_df["as_cum_acc"] = gr_df["as_acc_c_num"] / \
+        (gr_df["as_acc_c_num"] + gr_df["as_acc_inc_num"])
+
+    shift_col = [
+        "num_correct",
+        "num_incorrect",
+        "as_acc_c_num",
+        "as_acc_inc_num",
+        "as_prev_acc",
+        "as_cum_acc"]
+    gr_df[shift_col] = gr_df[shift_col].shift(1).fillna(-99)
+
+    return gr_df
+
+
+class PrevAssessAcc(Features):
+    """kernel features revised
+    """
+
+    def __init__(self, train_labels, params, logger=None):
+        super().__init__(params, logger=logger)
+        self.train_labels = train_labels
+
+    def calc_feature(self, org_train, org_test):
+        if self.datatype == "train":
+            df = org_train
+            assess_user = df.loc[df.type ==
+                                 "Assessment"].installation_id.unique()
+            df = df.loc[df.installation_id.isin(assess_user)]
+        else:
+            # 直前までのnum_correct/incorrectを取得する
+            df = org_test
+
+        ret = applyParallel(
+            df.groupby("installation_id"),
+            self.ins_id_sessions)
+        ret_col = [c for c in list(ret.columns) if c not in ["accuracy", "accuracy_group", "cum_accuracy",
+                                                             "game_session", "installation_id", "title",
+                                                             "type"
+                                                             ]]
+        ret[ret_col] = ret[ret_col].fillna(0)
+#         self.format_and_save_feats(ret)
+
+        use_cols = [c for c in list(ret.columns) if c not in ["accuracy", "accuracy_group", "cum_accuracy", "title",
+                                                              "type", "event_code", "gs_max_time"
+                                                              ]]
+        self.format_and_save_feats(ret[use_cols])
+
+        return ret[use_cols]
+
+    def ins_id_sessions(self, df):
+        """session当該session直前までのactivityを示す
+        Args:
+            df: df grouped by installation_id
+        """
+        # 単純なactivity count
+        df["gs_max_time"] = df.groupby("game_session")["timestamp"].transform(
+            "max")  # gs_max_timeでsortする必要がある
+
+        c_ass_idx = ((df.event_code == 4100)
+                     & (df.title != "Bird Measurer (Assessment)")
+                     & (df["event_data"].str.contains("true"))) | \
+            ((df.event_code == 4110)
+             & (df.title == "Bird Measurer (Assessment)")
+             & (df["event_data"].str.contains("true")))
+
+        inc_ass_idx = ((df.event_code == 4100)
+                       & (df.title != "Bird Measurer (Assessment)")
+                       & (df["event_data"].str.contains("false"))) | \
+            ((df.event_code == 4110)
+             & (df.title == "Bird Measurer (Assessment)")
+             & (df["event_data"].str.contains("false")))
+
+        df.loc[c_ass_idx, 'num_correct'] = 1
+        df.loc[inc_ass_idx, 'num_incorrect'] = 1
+
+        df["num_correct"].fillna(0, inplace=True)
+        df["num_incorrect"].fillna(0, inplace=True)
+
+        df = df.loc[(df.type == "Assessment")]
+
+        df = df.groupby(["installation_id", "game_session", "gs_max_time", "title"])[
+            ["num_correct", "num_incorrect"]].sum().reset_index()
+
+        df = df.groupby("title").apply(assess_history)
+        df = df.sort_values("gs_max_time", ascending=True)
+
+        del df["title"], df["gs_max_time"]
+
+        if self.datatype == "test":
+            df = pd.DataFrame([df.iloc[-1, :]])
+
+        return df
+
+
+def game_duration(val):
+    val = json.loads(val)
+    duration = val["duration"]
+    g_misses = val["misses"]
+
+    return [duration, g_misses]
+
+
+def world_cum_duration_calc(world_df):
+    # duration / missを抽出
+    wg_df = world_df[(world_df.event_code == 2030) & (world_df.type == "Game")]
+    du_miss = np.array(wg_df["event_data"].apply(game_duration).tolist())
+    try:
+        wg_df["duration"] = du_miss[:, 0]
+        wg_df["misses"] = du_miss[:, 1]
+    except BaseException:
+        wg_df["duration"] = np.nan
+        wg_df["misses"] = np.nan
+
+    del du_miss
+
+    aggs = {
+        "duration": ["min", "mean", "max", "std", "count"],
+        "misses": ["min", "mean", "max", "std"],
+    }
+
+    game_cums = groupings(
+        wg_df, [
+            "game_session", "gs_max_time", "world"], aggs, "g_")
+
+    del wg_df
+    gc.collect()
+
+    # 累積を計算
+    game_cums = game_cums.sort_values("gs_max_time").reset_index(drop=True)
+
+    num_cols = [
+        c for c in list(
+            game_cums.columns) if c not in [
+            "game_session",
+            "gs_max_time",
+            "world"]]
+    cum_mean_cols = ["mean_" + c for c in num_cols]
+
+    game_cums[cum_mean_cols] = game_cums[num_cols].cumsum()
+    game_cums["cumnum"] = (game_cums.index + 1).values
+    game_cums[cum_mean_cols] /= game_cums["cumnum"].values.reshape((-1, 1))
+
+    game_cums[["game_session", "gs_max_time", "world"] + cum_mean_cols]
+
+    # 直前のgameまでの累積結果をmergeする
+    game_ass_uni = world_df[["world", "game_session", "type", "installation_id",
+                             "gs_max_time"]].drop_duplicates().sort_values("gs_max_time").reset_index(drop=True)
+
+    game_ass_uni = pd.merge(
+        game_ass_uni, game_cums, how="left", on=[
+            "game_session", "gs_max_time", "world"]).fillna(
+        method="ffill")
+    game_ass_uni = game_ass_uni.loc[game_ass_uni.type == "Assessment"]
+
+    return game_ass_uni
+
+
+class GameDurMiss(Features):
+    """assessment 直前までのgameのプレイ状況を取得する
+    """
+
+    def __init__(self, train_labels, params, logger=None):
+        super().__init__(params, logger=logger)
+        self.train_labels = train_labels
+
+    def calc_feature(self, org_train, org_test):
+        if self.datatype == "train":
+            df = org_train
+            df = df.loc[df.installation_id.isin(
+                self.train_labels.installation_id.unique())]
+        else:
+            # 直前までのnum_correct/incorrectを取得する
+            df = org_test
+
+        ret = applyParallel(
+            df.groupby("installation_id"),
+            self.ins_id_sessions)
+        ret_col = [c for c in list(ret.columns) if c not in ["accuracy", "accuracy_group", "cum_accuracy",
+                                                             "game_session", "installation_id", "title",
+                                                             "type"
+                                                             ]]
+
+        use_cols = [c for c in list(ret.columns) if c not in ["accuracy", "accuracy_group", "cum_accuracy", "title",
+                                                              "type", "event_code", "gs_max_time"
+                                                              ]]
+        self.format_and_save_feats(ret[use_cols])
+
+        return ret[use_cols]
+
+    def ins_id_sessions(self, df):
+        """assessment 直前までのgameのプレイ状況を取得する
+        Args:
+            df: df grouped by installation_id
+        """
+        # 単純なactivity count
+        gs_game_ass = df.loc[((df.event_code == 2030) & (
+            df.type == "Game")) | (df.type == "Assessment")]
+        gs_game_ass["gs_max_time"] = gs_game_ass.groupby(
+            "game_session")["timestamp"].transform("max")
+
+        game_ass_uni = gs_game_ass.groupby("world").apply(
+            world_cum_duration_calc).reset_index(drop=True).sort_values("gs_max_time")
+
+        del gs_game_ass
+
+        if self.datatype == "test":
+            game_ass_uni = pd.DataFrame([game_ass_uni.iloc[-1, :]])
+
+        return game_ass_uni

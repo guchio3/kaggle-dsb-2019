@@ -1,3 +1,4 @@
+
 # import importlib
 import logging
 import os
@@ -195,10 +196,10 @@ def main():
         # "AssessEventCount": [AssessEventCount, False],
         "EncodingTitles": [EncodingTitles, False],
         # "encodingTitleOrder": [encodingTitleOrder, False],
-        # "PrevAssessResult": [PrevAssessResult, True],
-        "PrevAssessAcc": [PrevAssessAcc, True],
+        "PrevAssessResult": [PrevAssessResult, True],
+        #  "PrevAssessAcc": [PrevAssessAcc, True],
         "PrevAssessAccByTitle": [PrevAssessAccByTitle, False],
-        # "GameDurMiss": [GameDurMiss, False],
+        #  "GameDurMiss": [GameDurMiss, False],
         # "dtFeatures": [dtFeatures, False],
         # "eventCodeRatioFeatures": [eventCodeRatioFeatures, False],
         # "eventIDRatioFeatures": [eventIDRatioFeatures, False],
