@@ -84,19 +84,19 @@ class worldEventDataFeaturesRolling5(Features):
 
                     res_df[f'{world}_{key_stat}_max'] = \
                         _df[key_stat].rolling(
-                        window=len(ROLLING), min_periods=1).max()
+                        window=ROLLING, min_periods=1).max()
                     res_df[f'{world}_{key_stat}_min'] = \
                         _df[key_stat].rolling(
-                        window=len(ROLLING), min_periods=1).min()
+                        window=ROLLING, min_periods=1).min()
                     res_df[f'{world}_{key_stat}_mean'] = \
                         _df[key_stat].rolling(
-                        window=len(ROLLING), min_periods=1).mean()
+                        window=ROLLING, min_periods=1).mean()
                     res_df[f'{world}_{key_stat}_std'] = \
                         _df[key_stat].rolling(
-                        window=len(ROLLING), min_periods=1).std()
+                        window=ROLLING, min_periods=1).std()
                     res_df[f'{world}_just_before_{key_stat}'] = \
                         _df[key_stat].rolling(
-                        window=len(ROLLING), min_periods=1).apply(
+                        window=ROLLING, min_periods=1).apply(
                         lambda x: pd.Series(x).dropna().iloc[-1])
 
         for key in ['level', 'round', 'misses']:
