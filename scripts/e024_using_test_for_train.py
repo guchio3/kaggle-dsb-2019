@@ -38,7 +38,8 @@ from features.f018_world_event_data_features_rolling_5 import \
     worldEventDataFeaturesRolling5
 # from features.f999_suga_yama_features_fixed import KernelBasics3
 from features.f100_suga_yama_features_fixed import KernelBasics3
-# from guchio_utils import guchioValidation
+from features.f101_target_features import targetFeatures
+from guchio_utils import Validation2
 from yamakawa_san_utils import (OptimizedRounder, Validation, base_path,
                                 log_output, memory_reducer, pickle_load, qwk,
                                 timer)
@@ -173,12 +174,21 @@ def preprocess_dfs(use_features, is_local=False, logger=None, debug=True):
             datatype="test",
             is_local=is_local,
             logger=None)
+        test_train_df = add_features(
+            use_features,
+            org_test,
+            org_test,
+            train_labels,
+            specs,
+            datatype="test_train",
+            is_local=is_local,
+            logger=None)
         test_df = test_df.reset_index(drop=True)
 
 #     df = pd.concat([df, feat_df], axis=1)
     print("preprocess done!!")
 
-    return train_df, test_df
+    return train_df, test_df, test_train_df
 
 
 def main():
@@ -220,7 +230,7 @@ def main():
 
     if is_local:
         base_path = "../input"  # at local
-        train_df, test_df = preprocess_dfs(
+        train_df, test_df, test_train_df = preprocess_dfs(
             use_feature, is_local=is_local, logger=None, debug=False)
 
     else:
@@ -233,12 +243,13 @@ def main():
             sub.to_csv('submission.csv', index=False)
             exit(0)
         else:
-            train_df, test_df = preprocess_dfs(
+            train_df, test_df, test_train_df = preprocess_dfs(
                 use_feature, is_local=is_local, logger=None, debug=is_debug)
 
     # remove , to avoid error of lgbm
     train_df.columns = [col.replace(',', '_') for col in train_df.columns]
     test_df.columns = [col.replace(',', '_') for col in test_df.columns]
+    test_train_df.columns = [col.replace(',', '_') for col in test_df.columns]
 
     # train_params = {
     #     'learning_rate': 0.01,
@@ -351,7 +362,14 @@ def main():
     # train_df.loc[train_df[target] <= 1, target] = 0
     # train_df.loc[train_df[target] > 1, target] = 1
     # print(train_df[target].head())
-    v = Validation(validation_param, exp_conf, train_df, test_df, logger)
+    # v = Validation(validation_param, exp_conf, train_df, test_df, logger)
+    v = Validation2(
+        validation_param,
+        exp_conf,
+        train_df,
+        test_df,
+        test_train_df,
+        logger)
     clf, oof, prediction, feature_importance_df \
         = v.do_valid_kfold(model_conf)
 
