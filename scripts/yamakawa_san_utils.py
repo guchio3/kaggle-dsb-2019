@@ -117,6 +117,7 @@ def applyParallel(dfGrouped, func):
     """
     retLst = Parallel(
         n_jobs=multiprocessing.cpu_count(),
+        # n_jobs=1,
         verbose=5)(
         delayed(func)(group) for name,
         group in dfGrouped)

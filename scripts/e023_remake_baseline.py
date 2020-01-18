@@ -188,26 +188,26 @@ def main():
     # start processing
     # ==============================
     use_feature = {
-        "EventCount": [EventCount, False],  # class, is_overwrite
-        "EventCount2": [EventCount2, False],  # class, is_overwrite
-        "Worldcount": [Worldcount, False],
-        "SessionTime": [SessionTime2, False],
+        ####"EventCount": [EventCount, False],  # class, is_overwrite
+        ####"EventCount2": [EventCount2, False],  # class, is_overwrite
+        ####"Worldcount": [Worldcount, False],
+        ####"SessionTime": [SessionTime2, False],
         # "AssessEventCount": [AssessEventCount, False],
         "EncodingTitles": [EncodingTitles, False],
         # "encodingTitleOrder": [encodingTitleOrder, False],
         # "PrevAssessResult": [PrevAssessResult, False],
-        "PrevAssessAcc": [PrevAssessAcc, False],
-        "PrevAssessAccByTitle": [PrevAssessAccByTitle, False],
+        ####"PrevAssessAcc": [PrevAssessAcc, False],
+        ####"PrevAssessAccByTitle": [PrevAssessAccByTitle, False],
         # "GameDurMiss": [GameDurMiss, False],
         # "dtFeatures": [dtFeatures, False],
         # "eventCodeRatioFeatures": [eventCodeRatioFeatures, False],
         # "eventIDRatioFeatures": [eventIDRatioFeatures, False],
-        "immediatelyBeforeFeatures": [immediatelyBeforeFeatures, False],
+        ####"immediatelyBeforeFeatures": [immediatelyBeforeFeatures, False],
         # "worldLabelEncodingDiffFeatures": [worldLabelEncodingDiffFeatures, False],
         # "worldNumeriacalFeatures": [worldNumeriacalFeatures, False],
         # "worldAssessmentNumeriacalFeatures": [worldAssessmentNumeriacalFeatures, False],
         # "worldActivityNumeriacalFeatures": [worldActivityNumeriacalFeatures, False],
-        "worldGameNumeriacalFeatures": [worldGameNumeriacalFeatures, False],
+        ####"worldGameNumeriacalFeatures": [worldGameNumeriacalFeatures, False],
         # "worldEventDataFeatures1": [worldEventDataFeatures1, False], # to debug! killer features!
         # "worldEventDataFeaturesRolling5": [worldEventDataFeaturesRolling5, False],
         # "worldNumeriacalFeatures2": [worldNumeriacalFeatures2, False],

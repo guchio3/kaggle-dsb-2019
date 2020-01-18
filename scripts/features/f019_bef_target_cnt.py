@@ -32,11 +32,11 @@ class befTargetCntFeatures(Features):
         return ret
 
     def _calc_features(self, df):
-        df = df.sort_values('timestamp')
+        df = df.sort_values('timestamp').reset_index(drop=True)
         df['test_last'] = 0
         if self.datatype == 'test':
-            last_idx = df.index.iloc[-1]
-            df[last_idx, 'test_last'] = 1
+            df.loc[df.shape[0]-1, 'test_last'] = 1
+
         df = df[
             ((df.type == 'Assessment')
              & (
@@ -56,7 +56,7 @@ class befTargetCntFeatures(Features):
         res_df.columns = [f'{col[0]}_{col[1]}' for col in res_df.columns]
         res_df = res_df.sort_values('timestamp_max')
         res_df['bef_target_cnt'] = res_df.rolling(
-            window=len(res_df), min_periods=1).count()
+            window=len(res_df), min_periods=1).count().values
         res_df = res_df.drop(['timestamp_max'], axis=1)
         res_df = res_df.reset_index()
 

@@ -190,14 +190,14 @@ class guchioValidation():
 
 class Validation2():
     def __init__(self, validation_param, exp_conf, train,
-                 test, another_train=None, logger=None):
+                 test, logger=None, another_train=None):
         self.model_name = validation_param["model_name"]
         self.train_small_dataset = exp_conf["train_small_dataset"]
         self.logger = logger
         self.exp_conf = exp_conf
         self.train = self.fix_train_size(train)
         self.test = test
-        self.another_train
+        self.another_train = another_train
         if another_train:
             self.another_train_idx = np.arange(
                 len(another_train)) + len(self.train)
@@ -237,7 +237,8 @@ class Validation2():
             raise ValueError("permitted models are [LGBM, ..., ]")
         return model
 
-    def do_valid_kfold(self, model_conf, n_splits=5, val_mode='simple'):
+    def do_valid_kfold(self, model_conf, n_splits=5,
+                       trn_mode='simple', val_mode='simple'):
         sp = Splitter()
         target = model_conf["target"]
         split_x = self.train["installation_id"]
@@ -253,6 +254,7 @@ class Validation2():
             pref=self.exp_conf["exp_name"])
 
         oof: ndarray = np.zeros((self.train.shape[0]))
+        labels = np.zeros((self.train.shape[0]))
         prediction = np.zeros((self.test.shape[0]))
 
         clf_list = []
@@ -266,14 +268,20 @@ class Validation2():
             self.logger.log(logging.DEBUG, f"start training: {i}")
 
             with timer(f"fold {i}", self.logger):
-                train_df, valid_df = self.train.loc[trn_idx], self.train.loc[val_idx]
+                _train = self.train.copy()
                 if self.another_train:
-                    train_df = pd.concat([train_df, self.another_train])
-                    val_idx = np.concatenate([val_idx, self.another_train_idx])
+                    _train = pd.concat([_train, self.another_train])
+                    trn_idx = np.concatenate([trn_idx, self.another_train_idx])
+                if trn_mode == 'simple':
+                    pass
+                elif trn_mode == 'last_truncated':
+                    trn_idx = self.get_last_trancated_idx(_train, trn_idx)
                 if val_mode == 'simple':
                     pass
                 elif val_mode == 'last_truncated':
-                    val_idx = self.get_last_trancated_idx(train_df, val_idx)
+                    val_idx = self.get_last_trancated_idx(_train, val_idx)
+
+                train_df, valid_df = _train.loc[trn_idx], _train.loc[val_idx]
 
                 model = self.generate_model(model_conf)
                 clf, fold_oof, feature_importance_df = model.train(
@@ -289,6 +297,7 @@ class Validation2():
 
                 clf_list.append(clf)
                 oof[val_idx] = fold_oof
+                labels[val_idx] = valid_df['accuracy_group'].values
 
                 prediction += fold_prediction / n_splits
 
@@ -301,7 +310,7 @@ class Validation2():
 
         self.feature_importance = pd.concat(self.feature_importance, axis=0)
 
-        return clf_list, oof, prediction, self.feature_importance
+        return clf_list, oof, prediction, self.feature_importance, labels
 
     def do_adversarial_valid_kfold(self, model_conf, n_splits=2):
         sp = Splitter()
@@ -358,6 +367,9 @@ class Validation2():
 
         return clf_list, oof, prediction, self.feature_importance
 
-    def get_last_trancated_idx(self, train_df, val_idx):
-        train_df = 
-        return val_idx
+    def get_last_trancated_idx(self, df, idx):
+        df = df.loc[idx]
+        idx = df\
+            .sort_values(['installation_id', 'f019_bef_target_cnt'])\
+            .drop_duplicates('installation_id', keep='last').index
+        return idx

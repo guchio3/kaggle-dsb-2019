@@ -39,6 +39,7 @@ from features.f019_bef_target_cnt import befTargetCntFeatures
 # from features.f999_suga_yama_features_fixed import KernelBasics3
 from features.f100_suga_yama_features_fixed import KernelBasics3
 # from guchio_utils import guchioValidation
+from guchio_utils import Validation2
 from yamakawa_san_utils import (OptimizedRounder, Validation, base_path,
                                 log_output, memory_reducer, pickle_load, qwk,
                                 timer)
@@ -299,7 +300,8 @@ def main():
         'ass_session_interval_rmin',
         'accum_acc_gr_3',
         'g_duration_min',
-        'mean_g_duraation_std'
+        'mean_g_duraation_std',
+        'f019_bef_target_cnt',
     ]
 
     no_use_cols = [
@@ -314,6 +316,10 @@ def main():
     ] + list(set(train_df.columns) - set(test_df.columns)) + bad_feats
 
     train_cols = [c for c in list(train_df.columns) if c not in no_use_cols]
+    # set train cols
+    # train_cols = pd.read_csv('./mnt/importances/e026_temp.csv').groupby(
+    #     'feature').importance.mean().sort_values(ascending=False)[:10].index.tolist()
+
 
     print(f"train_df shape: {train_df.shape}")
     print(train_cols)
@@ -352,24 +358,32 @@ def main():
     # train_df.loc[train_df[target] <= 1, target] = 0
     # train_df.loc[train_df[target] > 1, target] = 1
     # print(train_df[target].head())
-    v = Validation(validation_param, exp_conf, train_df, test_df, logger)
-    clf, oof, prediction, feature_importance_df \
-        = v.do_valid_kfold(model_conf)
+    # v = Validation(validation_param, exp_conf, train_df, test_df, logger)
+    v = Validation2(validation_param, exp_conf, train_df, test_df, logger)
+    clf, oof, prediction, feature_importance_df, labels \
+        = v.do_valid_kfold(model_conf,
+                           # trn_mode='simple',
+                           trn_mode='last_truncated',
+                           val_mode='last_truncated')
+                           # val_mode='simple')
 
     optR = OptimizedRounder()
     # optR.fit(oof, train_df['accuracy_group'], [[1.0, 1.5, 2.9]])
-    optR.fit(oof, train_df['accuracy_group'], [[1.0, 1.5, 2.0]])
+    # optR.fit(oof, train_df['accuracy_group'], [[1.0, 1.5, 2.0]])
+    optR.fit(oof[oof != 0], labels[labels != 0], [[1.0, 1.5, 2.0]])
     coefficients = optR.coefficients()
 
-    opt_preds = optR.predict(oof, coefficients)
+    opt_preds = optR.predict(oof[oof != 0], coefficients)
 
     oof_dir = f'./mnt/oofs/{EXP_ID}'
     if not os.path.exists(oof_dir):
         os.mkdir(oof_dir)
     with open(f'{oof_dir}/{EXP_ID}_oof.pkl', 'wb') as fout:
         pickle.dump(oof, fout)
+    with open(f'{oof_dir}/{EXP_ID}_label.pkl', 'wb') as fout:
+        pickle.dump(labels, fout)
 
-    res_qwk = qwk(train_df['accuracy_group'], opt_preds)
+    res_qwk = qwk(labels[oof != 0], opt_preds)
     print(f'res_qwk : {res_qwk}')
     logger.log(
         logging.DEBUG,
