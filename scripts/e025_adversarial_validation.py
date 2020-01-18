@@ -1,4 +1,3 @@
-
 # import importlib
 import logging
 import os
@@ -38,8 +37,7 @@ from features.f018_world_event_data_features_rolling_5 import \
     worldEventDataFeaturesRolling5
 # from features.f999_suga_yama_features_fixed import KernelBasics3
 from features.f100_suga_yama_features_fixed import KernelBasics3
-from features.f101_target_features import targetFeatures
-from guchio_utils import Validation2
+# from guchio_utils import guchioValidation
 from yamakawa_san_utils import (OptimizedRounder, Validation, base_path,
                                 log_output, memory_reducer, pickle_load, qwk,
                                 timer)
@@ -61,8 +59,6 @@ is_local = False
 
 def feature_maker(feat_cls, is_overwrite, org_train, org_test,
                   train_labels, params, logger, is_local):
-    """featureの読み込み
-    """
     feat_ = feat_cls(train_labels, params, logger)
     feat_name = feat_.name
     datatype = feat_.datatype
@@ -83,7 +79,6 @@ def feature_maker(feat_cls, is_overwrite, org_train, org_test,
 
 def add_features(use_features, org_train, org_test, train_labels,
                  specs, datatype, is_local=False, logger=None):
-    # 都度計算する
     feat_params = {
         "datatype": datatype,
         "debug": True,
@@ -174,21 +169,12 @@ def preprocess_dfs(use_features, is_local=False, logger=None, debug=True):
             datatype="test",
             is_local=is_local,
             logger=None)
-        test_train_df = add_features(
-            use_features,
-            org_test,
-            org_test,
-            train_labels,
-            specs,
-            datatype="test_train",
-            is_local=is_local,
-            logger=None)
         test_df = test_df.reset_index(drop=True)
 
 #     df = pd.concat([df, feat_df], axis=1)
     print("preprocess done!!")
 
-    return train_df, test_df, test_train_df
+    return train_df, test_df
 
 
 def main():
@@ -199,26 +185,26 @@ def main():
     # start processing
     # ==============================
     use_feature = {
-        "EventCount": [EventCount, False],  # class, is_overwrite
-        "EventCount2": [EventCount2, False],  # class, is_overwrite
-        "Worldcount": [Worldcount, False],
-        "SessionTime": [SessionTime2, False],
+###        "EventCount": [EventCount, False],  # class, is_overwrite
+###        "EventCount2": [EventCount2, False],  # class, is_overwrite
+###        "Worldcount": [Worldcount, False],
+###        "SessionTime": [SessionTime2, False],
         # "AssessEventCount": [AssessEventCount, False],
         "EncodingTitles": [EncodingTitles, False],
         # "encodingTitleOrder": [encodingTitleOrder, False],
-        "PrevAssessResult": [PrevAssessResult, False],
+###        "PrevAssessResult": [PrevAssessResult, False],
         #  "PrevAssessAcc": [PrevAssessAcc, True],
-        "PrevAssessAccByTitle": [PrevAssessAccByTitle, False],
+###        "PrevAssessAccByTitle": [PrevAssessAccByTitle, False],
         #  "GameDurMiss": [GameDurMiss, False],
         # "dtFeatures": [dtFeatures, False],
         # "eventCodeRatioFeatures": [eventCodeRatioFeatures, False],
         # "eventIDRatioFeatures": [eventIDRatioFeatures, False],
-        "immediatelyBeforeFeatures": [immediatelyBeforeFeatures, False],
+###        "immediatelyBeforeFeatures": [immediatelyBeforeFeatures, False],
         # "worldLabelEncodingDiffFeatures": [worldLabelEncodingDiffFeatures, False],
         # "worldNumeriacalFeatures": [worldNumeriacalFeatures, False],
         # "worldAssessmentNumeriacalFeatures": [worldAssessmentNumeriacalFeatures, False],
         # "worldActivityNumeriacalFeatures": [worldActivityNumeriacalFeatures, False],
-        "worldGameNumeriacalFeatures": [worldGameNumeriacalFeatures, False],
+###        "worldGameNumeriacalFeatures": [worldGameNumeriacalFeatures, False],
         # "worldEventDataFeatures1": [worldEventDataFeatures1, False], # to debug! killer features!
         # "worldEventDataFeaturesRolling5": [worldEventDataFeaturesRolling5, False],
         # "worldNumeriacalFeatures2": [worldNumeriacalFeatures2, False],
@@ -230,7 +216,7 @@ def main():
 
     if is_local:
         base_path = "../input"  # at local
-        train_df, test_df, test_train_df = preprocess_dfs(
+        train_df, test_df = preprocess_dfs(
             use_feature, is_local=is_local, logger=None, debug=False)
 
     else:
@@ -243,13 +229,17 @@ def main():
             sub.to_csv('submission.csv', index=False)
             exit(0)
         else:
-            train_df, test_df, test_train_df = preprocess_dfs(
+            train_df, test_df = preprocess_dfs(
                 use_feature, is_local=is_local, logger=None, debug=is_debug)
 
     # remove , to avoid error of lgbm
     train_df.columns = [col.replace(',', '_') for col in train_df.columns]
     test_df.columns = [col.replace(',', '_') for col in test_df.columns]
-    test_train_df.columns = [col.replace(',', '_') for col in test_df.columns]
+
+    # concat for adv
+    train_df['is_train'] = 1
+    test_df['is_train'] = 0
+    train_df = pd.concat([train_df, test_df], axis=0).reset_index(drop=True)
 
     # train_params = {
     #     'learning_rate': 0.01,
@@ -269,18 +259,20 @@ def main():
     train_params = {
         'learning_rate': 0.01,
         'boosting_type': 'gbdt',
-        'objective': 'regression',
-        'metric': 'rmse',
+        'objective': 'binary',
+        # 'objective': 'regression',
+        'metric': 'auc',
+        # 'metric': 'rmse',
         'num_leaves': 64,
         # 'num_leaves': 16,
         'bagging_fraction': 0.9,
         'bagging_freq': 1,
         'feature_fraction': 0.7,
         'max_depth': -1,
-        # 'lambda_l1': 0.2,
-        # 'lambda_l2': 0.4,
-        'lambda_l1': 1,
-        'lambda_l2': 1,
+        'lambda_l1': 0.2,
+        'lambda_l2': 0.4,
+        # 'lambda_l1': 1,
+        # 'lambda_l2': 1,
         'seed': 19930802,
         'n_estimators': 100000,
         'importance_type': 'gain',
@@ -320,7 +312,8 @@ def main():
         "title",
         "type",
         "world",
-        "pred_y"
+        "pred_y",
+        "is_train",
     ] + list(set(train_df.columns) - set(test_df.columns)) + bad_feats
 
     train_cols = [c for c in list(train_df.columns) if c not in no_use_cols]
@@ -333,7 +326,8 @@ def main():
 
     # logger.log(logging.DEBUG, f"categorical cols: {cat_cols}")
 
-    target = "accuracy_group"
+    target = "is_train"
+    # target = "accuracy_group"
     # target = "accuracy"
 
     model_conf = {
@@ -362,14 +356,7 @@ def main():
     # train_df.loc[train_df[target] <= 1, target] = 0
     # train_df.loc[train_df[target] > 1, target] = 1
     # print(train_df[target].head())
-    # v = Validation(validation_param, exp_conf, train_df, test_df, logger)
-    v = Validation2(
-        validation_param,
-        exp_conf,
-        train_df,
-        test_df,
-        test_train_df,
-        logger)
+    v = Validation(validation_param, exp_conf, train_df, test_df, logger)
     clf, oof, prediction, feature_importance_df \
         = v.do_valid_kfold(model_conf)
 

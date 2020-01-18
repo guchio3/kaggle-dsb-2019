@@ -442,6 +442,7 @@ class Validation():
         target = model_conf["target"]
         split_x = self.train["installation_id"]
         split_y = self.train[target]
+        print(len(target))
         seed = 773
         sp.get_kfold_idx(
             split_x,
@@ -480,6 +481,8 @@ class Validation():
 #                 self.logger.log(logging.DEBUG, f"fold_val_score: {fold_val_score:,.5f}")
 
                 clf_list.append(clf)
+                print(len(val_idx))
+                print(len(fold_oof))
                 oof[val_idx] = fold_oof
 
                 prediction += fold_prediction / n_splits
