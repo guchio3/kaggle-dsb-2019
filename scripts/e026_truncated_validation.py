@@ -35,6 +35,7 @@ from features.f016_current_session_info import currentSessionInfo
 from features.f017_same_world_base_features import sameWorldBaseFeatures
 from features.f018_world_event_data_features_rolling_5 import \
     worldEventDataFeaturesRolling5
+from features.f019_bef_target_cnt import befTargetCntFeatures
 # from features.f999_suga_yama_features_fixed import KernelBasics3
 from features.f100_suga_yama_features_fixed import KernelBasics3
 # from guchio_utils import guchioValidation
@@ -59,6 +60,8 @@ is_local = False
 
 def feature_maker(feat_cls, is_overwrite, org_train, org_test,
                   train_labels, params, logger, is_local):
+    """featureの読み込み
+    """
     feat_ = feat_cls(train_labels, params, logger)
     feat_name = feat_.name
     datatype = feat_.datatype
@@ -79,6 +82,7 @@ def feature_maker(feat_cls, is_overwrite, org_train, org_test,
 
 def add_features(use_features, org_train, org_test, train_labels,
                  specs, datatype, is_local=False, logger=None):
+    # 都度計算する
     feat_params = {
         "datatype": datatype,
         "debug": True,
@@ -192,10 +196,10 @@ def main():
         # "AssessEventCount": [AssessEventCount, False],
         "EncodingTitles": [EncodingTitles, False],
         # "encodingTitleOrder": [encodingTitleOrder, False],
-        "PrevAssessResult": [PrevAssessResult, False],
-        #  "PrevAssessAcc": [PrevAssessAcc, True],
+        # "PrevAssessResult": [PrevAssessResult, False],
+        "PrevAssessAcc": [PrevAssessAcc, False],
         "PrevAssessAccByTitle": [PrevAssessAccByTitle, False],
-        #  "GameDurMiss": [GameDurMiss, False],
+        # "GameDurMiss": [GameDurMiss, False],
         # "dtFeatures": [dtFeatures, False],
         # "eventCodeRatioFeatures": [eventCodeRatioFeatures, False],
         # "eventIDRatioFeatures": [eventIDRatioFeatures, False],
@@ -204,12 +208,13 @@ def main():
         # "worldNumeriacalFeatures": [worldNumeriacalFeatures, False],
         # "worldAssessmentNumeriacalFeatures": [worldAssessmentNumeriacalFeatures, False],
         # "worldActivityNumeriacalFeatures": [worldActivityNumeriacalFeatures, False],
-        "worldGameNumeriacalFeatures": [worldGameNumeriacalFeatures, True],
+        "worldGameNumeriacalFeatures": [worldGameNumeriacalFeatures, False],
         # "worldEventDataFeatures1": [worldEventDataFeatures1, False], # to debug! killer features!
         # "worldEventDataFeaturesRolling5": [worldEventDataFeaturesRolling5, False],
         # "worldNumeriacalFeatures2": [worldNumeriacalFeatures2, False],
         # "currentSessionInfo": [currentSessionInfo, False],
         # "sameWorldBaseFeatures": [sameWorldBaseFeatures, False],
+        "befTargetCntFeatures": [befTargetCntFeatures, False],
     }
 
     is_local = False
@@ -236,11 +241,6 @@ def main():
     train_df.columns = [col.replace(',', '_') for col in train_df.columns]
     test_df.columns = [col.replace(',', '_') for col in test_df.columns]
 
-    # concat for adv
-    train_df['is_train'] = 1
-    test_df['is_train'] = 0
-    train_df = pd.concat([train_df, test_df], axis=0).reset_index(drop=True)
-
     # train_params = {
     #     'learning_rate': 0.01,
     #     'bagging_fraction': 0.90,
@@ -259,20 +259,18 @@ def main():
     train_params = {
         'learning_rate': 0.01,
         'boosting_type': 'gbdt',
-        'objective': 'binary',
-        # 'objective': 'regression',
-        'metric': 'auc',
-        # 'metric': 'rmse',
+        'objective': 'regression',
+        'metric': 'rmse',
         'num_leaves': 64,
         # 'num_leaves': 16,
         'bagging_fraction': 0.9,
         'bagging_freq': 1,
         'feature_fraction': 0.7,
         'max_depth': -1,
-        'lambda_l1': 0.2,
-        'lambda_l2': 0.4,
-        # 'lambda_l1': 1,
-        # 'lambda_l2': 1,
+        # 'lambda_l1': 0.2,
+        # 'lambda_l2': 0.4,
+        'lambda_l1': 1,
+        'lambda_l2': 1,
         'seed': 19930802,
         'n_estimators': 100000,
         'importance_type': 'gain',
@@ -301,15 +299,7 @@ def main():
         'ass_session_interval_rmin',
         'accum_acc_gr_3',
         'g_duration_min',
-        'mean_g_duraation_std',
-#        'prev_acc_gr_0',
-#        'prev_acc_gr_1',
-#        'prev_acc_gr_2',
-#        'prev_acc_gr_3',
-#         'accum_acc_gr_0',
-#         'accum_acc_gr_1',
-#         'accum_acc_gr_2',
-#         'accum_acc_gr_3',
+        'mean_g_duraation_std'
     ]
 
     no_use_cols = [
@@ -320,26 +310,20 @@ def main():
         "title",
         "type",
         "world",
-        "pred_y",
-        "is_train",
+        "pred_y"
     ] + list(set(train_df.columns) - set(test_df.columns)) + bad_feats
 
     train_cols = [c for c in list(train_df.columns) if c not in no_use_cols]
 
     print(f"train_df shape: {train_df.shape}")
-    # print(train_cols)
-    logger.log(logging.DEBUG, f'---------------------------------------------')
-    logger.log(logging.DEBUG, f'train_df.columns : {train_df.columns.tolist()}')
-    logger.log(logging.DEBUG, f'---------------------------------------------')
-    logger.log(logging.DEBUG, f'no_use_cols : {no_use_cols}')
+    print(train_cols)
 
     cat_cols = [
     ]
 
     # logger.log(logging.DEBUG, f"categorical cols: {cat_cols}")
 
-    target = "is_train"
-    # target = "accuracy_group"
+    target = "accuracy_group"
     # target = "accuracy"
 
     model_conf = {

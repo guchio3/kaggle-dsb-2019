@@ -198,6 +198,10 @@ class Validation2():
         self.train = self.fix_train_size(train)
         self.test = test
         self.another_train
+        if another_train:
+            self.another_train_idx = np.arange(
+                len(another_train)) + len(self.train)
+            self.another_train.index = self.another_train_idx
         self.feature_importance = []
 
         self.logging_valid_parameters()
@@ -233,7 +237,7 @@ class Validation2():
             raise ValueError("permitted models are [LGBM, ..., ]")
         return model
 
-    def do_valid_kfold(self, model_conf, n_splits=5):
+    def do_valid_kfold(self, model_conf, n_splits=5, val_mode='simple'):
         sp = Splitter()
         target = model_conf["target"]
         split_x = self.train["installation_id"]
@@ -265,6 +269,12 @@ class Validation2():
                 train_df, valid_df = self.train.loc[trn_idx], self.train.loc[val_idx]
                 if self.another_train:
                     train_df = pd.concat([train_df, self.another_train])
+                    val_idx = np.concatenate([val_idx, self.another_train_idx])
+                if val_mode == 'simple':
+                    pass
+                elif val_mode == 'last_truncated':
+                    val_idx = self.get_last_trancated_idx(train_df, val_idx)
+
                 model = self.generate_model(model_conf)
                 clf, fold_oof, feature_importance_df = model.train(
                     train_df, valid_df, self.logger)
@@ -347,3 +357,7 @@ class Validation2():
         self.feature_importance = pd.concat(self.feature_importance, axis=0)
 
         return clf_list, oof, prediction, self.feature_importance
+
+    def get_last_trancated_idx(self, train_df, val_idx):
+        train_df = 
+        return val_idx
