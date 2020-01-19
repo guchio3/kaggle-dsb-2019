@@ -373,3 +373,30 @@ class Validation2():
             .sort_values(['installation_id', 'f019_bef_target_cnt'])\
             .drop_duplicates('installation_id', keep='last').index
         return idx
+
+
+def exclude(reduce_train, reduce_test, features):
+    to_exclude = []
+    ajusted_test = reduce_test.copy()
+    print('----------------- start excluding features ------------------')
+    for feature in features:
+        if feature not in ['accuracy_group',
+                           'installation_id',
+                           'game_session',
+                           'title_enc']:
+            data = reduce_train[feature]
+            train_mean = data.mean()
+            data = ajusted_test[feature]
+            test_mean = data.mean()
+            try:
+                ajust_factor = train_mean / test_mean
+                if ajust_factor > 10 or ajust_factor < 0.1:  # or error > 0.01:
+                    to_exclude.append(feature)
+                    print(feature)
+                else:
+                    ajusted_test[feature] *= ajust_factor
+            except BaseException:
+                to_exclude.append(feature)
+                print(feature)
+    print('----------------- done ------------------')
+    return to_exclude, ajusted_test
