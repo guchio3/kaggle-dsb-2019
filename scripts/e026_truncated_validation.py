@@ -133,12 +133,14 @@ def preprocess_dfs(use_features, is_local=False, logger=None, debug=True):
 
         sub = pd.read_csv(base_path + '/sample_submission.csv')
 
-        if is_local:
-            org_train = pickle_load("../input/train.pkl")
-            org_test = pickle_load("../input/test.pkl")
-        else:
-            org_train = pd.read_csv(base_path + "/train.csv", nrows=nrows)
-            org_test = pd.read_csv(base_path + "/test.csv", nrows=nrows)
+        # if is_local:
+        #     org_train = pickle_load("../input/train.pkl")
+        #     org_test = pickle_load("../input/test.pkl")
+        # else:
+        #     org_train = pd.read_csv(base_path + "/train.csv", nrows=nrows)
+        #     org_test = pd.read_csv(base_path + "/test.csv", nrows=nrows)
+        org_train = pd.read_pickle(f'{base_path}/train.pkl.gz')
+        org_test = pd.read_csv(base_path + "/test.csv", nrows=nrows)
 
         org_train = memory_reducer(org_train, verbose=True)
         org_test = org_test[org_test.installation_id.isin(sub.installation_id)]
@@ -321,7 +323,8 @@ def main():
     #     'feature').importance.mean().sort_values(ascending=False)[:10].index.tolist()
 
 
-    print(f"train_df shape: {train_df.shape}")
+    # print(f"train_df shape: {train_df.shape}")
+    logger.log(logging.DEBUG, f"train_df shape: {train_df.shape}")
     print(train_cols)
 
     cat_cols = [
