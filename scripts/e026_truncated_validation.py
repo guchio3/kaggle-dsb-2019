@@ -36,6 +36,8 @@ from features.f017_same_world_base_features import sameWorldBaseFeatures
 from features.f018_world_event_data_features_rolling_5 import \
     worldEventDataFeaturesRolling5
 from features.f019_bef_target_cnt import befTargetCntFeatures
+from features.f020_yamakawa_san_feat1 import TypeEventCounts
+from features.f021_yamakawa_san_feat2 import UserActivityCount
 # from features.f999_suga_yama_features_fixed import KernelBasics3
 from features.f100_suga_yama_features_fixed import KernelBasics3
 # from guchio_utils import guchioValidation
@@ -218,6 +220,8 @@ def main():
         # "currentSessionInfo": [currentSessionInfo, False],
         # "sameWorldBaseFeatures": [sameWorldBaseFeatures, False],
         "befTargetCntFeatures": [befTargetCntFeatures, False],
+#        "TypeEventCounts": [TypeEventCounts, False],
+#        "UserActivityCount": [UserActivityCount, False],
     }
 
     is_local = False
@@ -385,6 +389,8 @@ def main():
         pickle.dump(oof, fout)
     with open(f'{oof_dir}/{EXP_ID}_label.pkl', 'wb') as fout:
         pickle.dump(labels, fout)
+    with open(f'{oof_dir}/{EXP_ID}_prediction.pkl', 'wb') as fout:
+        pickle.dump(prediction, fout)
 
     res_qwk = qwk(labels[oof != 0], opt_preds)
     print(f'res_qwk : {res_qwk}')
