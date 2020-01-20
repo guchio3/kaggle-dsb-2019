@@ -38,6 +38,7 @@ from features.f018_world_event_data_features_rolling_5 import \
 from features.f019_bef_target_cnt import befTargetCntFeatures
 from features.f020_yamakawa_san_feat1 import TypeEventCounts
 from features.f021_yamakawa_san_feat2 import UserActivityCount
+from features.f022_yamakawa_san_feat3 import PrevAssessAccByTitle2
 # from features.f999_suga_yama_features_fixed import KernelBasics3
 from features.f100_suga_yama_features_fixed import KernelBasics3
 # from guchio_utils import guchioValidation
@@ -203,7 +204,8 @@ def main():
         # "encodingTitleOrder": [encodingTitleOrder, False],
         # "PrevAssessResult": [PrevAssessResult, False],
         "PrevAssessAcc": [PrevAssessAcc, False],
-        "PrevAssessAccByTitle": [PrevAssessAccByTitle, False],
+#        "PrevAssessAccByTitle": [PrevAssessAccByTitle, False],
+        "PrevAssessAccByTitle2": [PrevAssessAccByTitle2, False],
         "GameDurMiss": [GameDurMiss, False],
         # "dtFeatures": [dtFeatures, False],
         # "eventCodeRatioFeatures": [eventCodeRatioFeatures, False],
