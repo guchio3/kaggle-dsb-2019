@@ -36,13 +36,10 @@ from features.f017_same_world_base_features import sameWorldBaseFeatures
 from features.f018_world_event_data_features_rolling_5 import \
     worldEventDataFeaturesRolling5
 from features.f019_bef_target_cnt import befTargetCntFeatures
-from features.f020_yamakawa_san_feat1 import TypeEventCounts
-from features.f021_yamakawa_san_feat2 import UserActivityCount
-from features.f022_yamakawa_san_feat3 import PrevAssessAccByTitle2
 # from features.f999_suga_yama_features_fixed import KernelBasics3
 from features.f100_suga_yama_features_fixed import KernelBasics3
 # from guchio_utils import guchioValidation
-from guchio_utils import Validation2
+from guchio_utils import Validation2, exclude
 from yamakawa_san_utils import (OptimizedRounder, Validation, base_path,
                                 log_output, memory_reducer, pickle_load, qwk,
                                 timer)
@@ -204,8 +201,7 @@ def main():
         # "encodingTitleOrder": [encodingTitleOrder, False],
         # "PrevAssessResult": [PrevAssessResult, False],
         "PrevAssessAcc": [PrevAssessAcc, False],
-#        "PrevAssessAccByTitle": [PrevAssessAccByTitle, False],
-        "PrevAssessAccByTitle2": [PrevAssessAccByTitle2, False],
+        "PrevAssessAccByTitle": [PrevAssessAccByTitle, False],
         "GameDurMiss": [GameDurMiss, False],
         # "dtFeatures": [dtFeatures, False],
         # "eventCodeRatioFeatures": [eventCodeRatioFeatures, False],
@@ -222,8 +218,6 @@ def main():
         # "currentSessionInfo": [currentSessionInfo, False],
         # "sameWorldBaseFeatures": [sameWorldBaseFeatures, False],
         "befTargetCntFeatures": [befTargetCntFeatures, False],
-#        "TypeEventCounts": [TypeEventCounts, False],
-#        "UserActivityCount": [UserActivityCount, False],
     }
 
     is_local = False
@@ -328,6 +322,8 @@ def main():
     # train_cols = pd.read_csv('./mnt/importances/e026_temp.csv').groupby(
     #     'feature').importance.mean().sort_values(ascending=False)[:10].index.tolist()
 
+    to_exclude, test_df = exclude(train_df, test_df, train_cols)
+    train_cols = [col for col in train_cols if col not in to_exclude]
 
     # print(f"train_df shape: {train_df.shape}")
     logger.log(logging.DEBUG, f"train_df shape: {train_df.shape}")
@@ -391,8 +387,6 @@ def main():
         pickle.dump(oof, fout)
     with open(f'{oof_dir}/{EXP_ID}_label.pkl', 'wb') as fout:
         pickle.dump(labels, fout)
-    with open(f'{oof_dir}/{EXP_ID}_prediction.pkl', 'wb') as fout:
-        pickle.dump(prediction, fout)
 
     res_qwk = qwk(labels[oof != 0], opt_preds)
     print(f'res_qwk : {res_qwk}')
