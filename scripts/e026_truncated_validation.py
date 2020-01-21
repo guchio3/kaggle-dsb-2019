@@ -204,8 +204,8 @@ def main():
         # "encodingTitleOrder": [encodingTitleOrder, False],
         # "PrevAssessResult": [PrevAssessResult, False],
         "PrevAssessAcc": [PrevAssessAcc, False],
-#        "PrevAssessAccByTitle": [PrevAssessAccByTitle, False],
-        "PrevAssessAccByTitle2": [PrevAssessAccByTitle2, False],
+        "PrevAssessAccByTitle": [PrevAssessAccByTitle, False],
+#        "PrevAssessAccByTitle2": [PrevAssessAccByTitle2, False],
         "GameDurMiss": [GameDurMiss, False],
         # "dtFeatures": [dtFeatures, False],
         # "eventCodeRatioFeatures": [eventCodeRatioFeatures, False],
@@ -310,6 +310,7 @@ def main():
         'g_duration_min',
         'mean_g_duraation_std',
         'f019_bef_target_cnt',
+#        'Chest Sorter (Assessment)',
     ]
 
     no_use_cols = [
